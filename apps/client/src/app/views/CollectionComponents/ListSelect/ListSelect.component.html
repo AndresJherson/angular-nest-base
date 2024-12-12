@@ -1,0 +1,32 @@
+@if ( vm$ | async; as vm ) {
+
+    <div class="tw-flex tw-items-center tw-gap-2">
+
+        <i class="bi bi-arrow-bar-left btn btn-light !tw-text-base"
+            (click)="close()"></i>
+
+        <h4>{{ vm.title }}</h4>
+
+    </div>
+
+    <app-input-search [store]="store"
+        [vm$]="inputSearchComponentVm$"
+        (onSearch)="search( $event )"/>
+
+    <div class="tw-grid tw-gap-2 tw-p-2 tw-overflow-auto">
+
+        @for (item of data; track $index) {
+
+            <div class="tw-p-2 tw-rounded tw-shadow tw-cursor-pointer hover:tw-bg-blue-200"
+                [ngClass]="{
+                    '!tw-bg-blue-200': itemSelected === item
+                }"
+                (click)="itemSelected = item">{{ vm.displayValue( item ) }}</div>
+
+        }
+
+    </div>
+
+    
+    <app-buttons-footer [vm$]="buttonsFooterComponentVm$"/>
+}

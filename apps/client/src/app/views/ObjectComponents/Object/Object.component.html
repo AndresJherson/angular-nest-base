@@ -1,0 +1,120 @@
+@if ( vm$ | async; as vm ) {
+
+    <div class="tw-flex tw-justify-between">
+
+        <div class="tw-flex tw-items-center tw-gap-2">
+            <i class="bi bi-arrow-bar-left btn btn-light !tw-text-base !tw-shadow" (click)="close( $event )"></i>
+            <h4>{{ vm.title }}</h4>
+        </div>
+
+        <app-buttons-menu [vm$]="buttonsMenuComponentVm$"/>
+
+    </div>
+
+
+    <div class="tw-flex tw-flex-col tw-gap-3 tw-p-1 tw-overflow-auto md:tw-grid md:tw-grid-cols-[auto_auto] md:tw-gap-x-8">
+        @for (bind of vm.bindingProperties; track $index) {
+        
+            @if ( 
+                ( vm.state === StateObjectComponent.create || vm.state === StateObjectComponent.update )
+                && !bind.readonly
+            ) {
+    
+                <div>
+    
+                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">{{ bind.title }}</label>
+        
+                    @switch ( bind.behavior ) {
+
+                        @case ( PropBehavior.string ) {
+
+                            <input type="text"
+                                class="form-control !tw-text-xl"
+                                [ngModel]="bind.getValue( item )"
+                                (ngModelChange)="bind.setValue ? bind.setValue( item, $event ) : undefined">
+
+                        }
+                        @case ( PropBehavior.number ) {
+
+                            <input type="number"
+                                class="form-control !tw-text-xl"
+                                [ngModel]="bind.getValue( item )"
+                                (ngModelChange)="bind.setValue ? bind.setValue( item, $event ) : undefined">
+
+                        }
+                        @case ( PropBehavior.boolean ) {
+
+                            <div class="form-switch">
+                                <input type="checkbox" 
+                                    class="form-check-input !tw-cursor-pointer !tw-h-5 !tw-w-10"
+                                    role="switch"
+                                    [checked]="bind.getValue( item, true )"
+                                    (change)="bind.setValue ? bind.setValue( item, inputSwitch.checked ) : undefined"
+                                    #inputSwitch>
+                            </div>
+
+                        }
+                        @case ( PropBehavior.date ) {
+
+                            <input type="date"
+                                class="form-control !tw-text-xl"
+                                [ngModel]="bind.getValue( item )"
+                                (ngModelChange)="bind.setValue ? bind.setValue( item, $event ) : undefined">
+
+                        }
+                        @case ( PropBehavior.datetime ) {
+
+                            <input type="datetime-local"
+                                class="form-control !tw-text-xl"
+                                [ngModel]="bind.getValue( item )"
+                                (ngModelChange)="bind.setValue ? bind.setValue( item, $event ) : undefined">
+
+                        }
+                        @case ( PropBehavior.time ) {
+
+                            <input type="time"
+                                class="form-control !tw-text-xl"
+                                [ngModel]="bind.getValue( item )"
+                                (ngModelChange)="bind.setValue ? bind.setValue( item, $event ) : undefined">
+
+                        }
+                        @case ( PropBehavior.model ) {
+
+                            <input type="text"
+                                class="form-control tw-cursor-pointer"
+                                [ngModel]="bind.getValue( item )"
+                                (click)="bind.onClick && !bind.readonly ? bind.onClick( item ) : undefined"
+                                readonly>
+
+                        }
+                        @default {
+
+                            <input type="text"
+                                class="form-control-plaintext !tw-text-xl"
+                                [ngModel]="bind.getValue( item )"
+                                readonly>
+
+                        }
+                    }
+    
+                </div>
+    
+            }
+            @else {
+    
+                <div>
+
+                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">{{ bind.title }}</label>
+                        
+                    <div class="tw-text-xl tw-text-ellipsis">{{ bind.getValue( item ) }}</div>
+    
+                </div>
+            }
+    
+        }
+    </div>
+
+
+    <app-buttons-footer [vm$]="buttonsFooterComponentVm$"/>
+
+}
