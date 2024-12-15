@@ -18,6 +18,30 @@ export enum PropBehavior
 export class Prop
 {
     private static recordMetadata = new Map<string, TypeInfo>();
+    private static classRegistry = new Map<string, new (...args: any[]) => Model>();
+
+
+    static Class(): ClassDecorator 
+    {
+        return ( target: any ) => {
+            Prop.classRegistry.set( target.prototype.constructor.name , target );
+        };
+    }
+
+    static GetClass( target: any )
+    {
+        try {
+            const constructorName = typeof target === String.name.toLowerCase()
+                                    ? target
+                                    : ( target.prototype?.constructor.name ?? target.constructor.name );
+    
+            return Prop.classRegistry.get( constructorName );
+        }
+        catch ( error ) {
+            return undefined;
+        }
+    }
+
 
     static Set( behavior?: PropBehavior, getModel?: () => new ( ...args: any[] ) => Model ): PropertyDecorator
     {
@@ -76,14 +100,21 @@ export class Prop
                     Reflect.set( target, propertyName, Boolean( value ) );
                 }
                 else if ( behavior === PropBehavior.model ) {
-                    Reflect.set( target, propertyName, new model( value ) );
+                    // console.log( 'model:', value );
+                    const constructorModel = Prop.GetClass( Object.getPrototypeOf( value ) ) ?? model;
+                    Reflect.set( target, propertyName, new constructorModel( value ) );
                 }
                 else if ( behavior === PropBehavior.array ) {
+                    // console.log( 'array:', value );
                     Reflect.set(
-                        target, 
-                        propertyName, 
+                        target,
+                        propertyName,
                         Array.isArray( value )
-                            ? value.map( item => new model( item ) )
+                            ? value.map( item =>  new (
+                                Prop.GetClass( Object.getPrototypeOf( item ) ) 
+                                ?? Prop.GetClass( item.type )
+                                ?? model 
+                            )( item ) )
                             : []
                     );
                 }
@@ -102,7 +133,6 @@ export class Prop
                 else {
                     Reflect.set( target, propertyName, value );
                 }
-                // Se podrán añadir más condicionales según se requiera el proyecto
 
                 initializedProperties.add( propertyName );
 
@@ -111,21 +141,34 @@ export class Prop
             prototype = Object.getPrototypeOf( prototype );
 
         }
-        console.log( 'initilize:', target )
     }
 
 
     static GetTypeInfo( target: any ): TypeInfo | undefined
     {
-        const constructorName = target.prototype?.constructor.name ?? target.constructor.name;
-        return this.recordMetadata.get( constructorName );
+        try {
+            const constructorName = target.prototype?.constructor.name ?? target.constructor.name;
+            return this.recordMetadata.get( constructorName );
+        }
+        catch ( error ) {
+            return undefined;
+        }
     }
 
 
-    static toDateTime( value: string )
+    static toDateTimeNow()
+    {
+        return DateTime.local( { zone: 'local', locale: 'system' } );
+    }
+
+
+    static toDateTime( value?: string )
     {
         try {
-            const datetime = DateTime.fromSQL(value, { zone: 'local', locale: 'system' });
+            if ( value === undefined || value === null ) throw new Error();
+            // const datetime = DateTime.fromSQL( value, { zone: 'local', locale: 'system' });
+            let datetime = DateTime.fromSQL( value );
+            datetime = !datetime.isValid ? DateTime.fromISO( value ) : datetime;
             return datetime.isValid ? datetime : DateTime.invalid('Inválido');
         }
         catch ( error: any ) {
@@ -134,9 +177,10 @@ export class Prop
     }
 
 
-    static toDuration( value: string )
+    static toDuration( value?: string )
     {
         try {
+            if ( value === undefined || value === null ) throw new Error();
             const [hours,minutes,seconds] = value.split( ':' ).map( Number );
             return Duration.fromObject({ hours, minutes, seconds });
         }
@@ -227,17 +271,22 @@ export interface ProperyInfo<T>
 }
 
 
+@Prop.Class()
 export class Model
 {
     @Prop.Set() symbol: symbol = Symbol();
     @Prop.Set() id?: number;
 
 
-    constructor( json?: any )
+    constructor( json?: Partial<Model> )
     {
         Prop.initialize( this, json );
     }
 
-    public checkProperties2send()
-    {}
+    set( json: Partial<this> ): this
+    {
+        Prop.initialize( this, json );
+        return this;
+    }
+
 }

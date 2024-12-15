@@ -207,39 +207,21 @@ export class ObjectComponent<T extends Model> implements IComponent<ObjectCompon
 
     create( e: Event )
     {
-        try {
-
-            this.item.checkProperties2send();
-            
-            this.onCreate.emit({
-                event: e,
-                sender: this,
-                item: this.item
-            });
-
-        }
-        catch ( error: any ) {
-            this.modalService.open( MessageBoxComponent ).subscribe( c => c.mensaje = error );
-        }
+        this.onCreate.emit({
+            event: e,
+            sender: this,
+            item: this.item
+        });
     }
 
 
     update( e: Event )
     {
-        try {
-
-            this.item.checkProperties2send();
-            
-            this.onUpdate.emit({
-                event: e,
-                sender: this,
-                item: this.item
-            });
-
-        }
-        catch ( error: any ) {
-            this.modalService.open( MessageBoxComponent ).subscribe( c => c.mensaje = error );
-        }
+        this.onUpdate.emit({
+            event: e,
+            sender: this,
+            item: this.item
+        });
     }
 
 

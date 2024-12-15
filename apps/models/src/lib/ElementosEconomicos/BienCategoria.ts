@@ -1,10 +1,11 @@
-import { Model, Prop } from "./Model";
+import { Model, Prop } from "../Model";
 
+@Prop.Class()
 export class BienCategoria extends Model
 {
     @Prop.Set() nombre?: string;
 
-    constructor( json?: any )
+    constructor( json?: Partial<BienCategoria> )
     {
         super();
         Prop.initialize( this, json );

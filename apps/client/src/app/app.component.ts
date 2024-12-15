@@ -2,20 +2,19 @@ import { Component, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { StateRowTableComponent, TableComponent, TableComponentVm } from "./views/CollectionComponents/Table/Table.component";
 import { ComponentStore } from './services/ComponentStore';
-import { Usuario } from '../../../models/src/lib/Usuario';
 import { BehaviorSubject, map, Observable, of } from 'rxjs';
 import { PropBehavior } from 'apps/models/src/lib/Model';
 import { ListSelectComponent, ListSelectComponentVm } from "./views/CollectionComponents/ListSelect/ListSelect.component";
 import { ObjectComponent, ObjectComponentVm, StateObjectComponent } from "./views/ObjectComponents/Object/Object.component";
-import { Producto } from '../../../models/src/lib/Producto';
-import { Bien } from 'apps/models/src/lib/Bien';
 import { v4 } from 'uuid';
-import { BienMarca } from 'apps/models/src/lib/BienMarca';
-import { BienCategoria } from 'apps/models/src/lib/BienCategoria';
-import { Magnitud } from 'apps/models/src/lib/Magnitud';
-import { MagnitudTipo } from 'apps/models/src/lib/MagnitudTipo';
 import { ModalService } from './services/modal.service';
 import { BUTTON_CLASS_BOOTSTRAP } from './utils/ButtonsClass';
+import { Usuario } from '../../../models/src/lib/Personas/Usuario';
+import { Bien } from '../../../models/src/lib/ElementosEconomicos/Bien';
+import { BienMarca } from 'apps/models/src/lib/ElementosEconomicos/BienMarca';
+import { BienCategoria } from 'apps/models/src/lib/ElementosEconomicos/BienCategoria';
+import { Magnitud } from 'apps/models/src/lib/ElementosEconomicos/Magnitud';
+import { MagnitudTipo } from 'apps/models/src/lib/ElementosEconomicos/MagnitudTipo';
 
 @Component({
   imports: [RouterModule, ListSelectComponent, TableComponent, ObjectComponent],

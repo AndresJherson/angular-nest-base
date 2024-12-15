@@ -1,8 +1,10 @@
 export * from './lib/Model';
-export * from './lib/Usuario';
-export * from './lib/Bien';
-export * from './lib/BienCategoria';
-export * from './lib/ElementoEconomico';
-export * from './lib/Magnitud';
-export * from './lib/MagnitudTipo';
-export * from './lib/Producto';
+
+export * from './lib/Personas/Usuario';
+
+export * from './lib/ElementosEconomicos/Bien';
+export * from './lib/ElementosEconomicos/BienCategoria';
+export * from './lib/ElementosEconomicos/ElementoEconomico';
+export * from './lib/ElementosEconomicos/Magnitud';
+export * from './lib/ElementosEconomicos/MagnitudTipo';
+export * from './lib/ElementosEconomicos/Producto';
