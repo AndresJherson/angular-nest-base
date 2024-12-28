@@ -1,6 +1,5 @@
 import { Component, EventEmitter, inject, Output, Input, ElementRef, Renderer2, ViewChild } from '@angular/core';
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { ModalService } from '../../../services/modal.service';
 import { BehaviorSubject, Subscription } from 'rxjs';
 
 @Component({
@@ -14,7 +13,7 @@ import { BehaviorSubject, Subscription } from 'rxjs';
 })
 export class ButtonsMenuComponent {
 
-    @Input() id: number = -1;
+    
     @Input() vm$ = new BehaviorSubject<ButtonsMenuComponentVm>({
         buttons: [],
     });
@@ -77,6 +76,7 @@ export class ButtonsMenuComponent {
         document.removeEventListener( 'click', this.onClickDocument );
     }
 }
+
 
 export interface BindingButtonButtonsMenuComponent
 {

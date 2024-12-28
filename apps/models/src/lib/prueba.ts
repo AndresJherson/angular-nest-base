@@ -1,13 +1,14 @@
 import Decimal from "decimal.js";
-import { Bien } from "./ElementosEconomicos/Bien";
-import { BienCategoria } from "./ElementosEconomicos/BienCategoria";
-import { BienMarca } from "./ElementosEconomicos/BienMarca";
-import { Magnitud } from "./ElementosEconomicos/Magnitud";
-import { MagnitudTipo } from "./ElementosEconomicos/MagnitudTipo";
+import { Bien } from "./ElementosEconomicos/Bien/Bien";
+import { BienCategoria } from "./ElementosEconomicos/Bien/BienCategoria";
+import { BienMarca } from "./ElementosEconomicos/Bien/BienMarca";
+import { Magnitud } from "./ElementosEconomicos/Bien/Magnitud";
+import { MagnitudTipo } from "./ElementosEconomicos/Bien/MagnitudTipo";
 import { Model, Prop, PropBehavior } from "./Model";
-import { Usuario } from "./Personas/Usuario";
 import { ErrorModel } from "./utils/ErrorModel";
 import { DateTime, Interval } from "luxon";
+import { QueryTypes, Sequelize } from 'sequelize';
+import { Usuario } from "./Personas/Usuario/Usuario";
 
 @Prop.Class()
 class Contenedor extends Model
@@ -258,17 +259,205 @@ const number = Infinity;
 
 
 
-const dateTimeInicio = Prop.toDateTime( undefined );
-const dateTimeFinal = Prop.toDateTime( undefined );
+// const dateTimeInicio = Prop.toDateTime( undefined );
+// const dateTimeFinal = Prop.toDateTime( undefined );
 
-const interval = Interval.fromDateTimes( dateTimeInicio, dateTimeFinal ); 
+// const interval = Interval.fromDateTimes( dateTimeInicio, dateTimeFinal ); 
 
-const duracionMinutos = interval.toDuration().minutes;
+// const duracionMinutos = interval.toDuration().minutes;
 
-const resultado = new Decimal( duracionMinutos )
-                    .mul( 23.234 )
-                    .minus( 100 )
-                    .toDecimalPlaces( 2 )
-                    .toNumber();
+// const resultado = new Decimal( duracionMinutos )
+//                     .mul( 23.234 )
+//                     .minus( 100 )
+//                     .toDecimalPlaces( 2 )
+//                     .toNumber();
 
-console.log( resultado );
+// console.log( resultado );
+const query = `
+SELECT JSON_ARRAYAGG( data ) as elementosEconomicos
+from (
+
+    select json_object(
+        'id', servicio.id,
+        'uuid', elemento_economico.uuid,
+        'codigo', elemento_economico.codigo,
+        'nombre', servicio.nombre,
+        'magnitudNombre', 'uni',
+        'servicioCategoria', (
+            select json_object(
+                'id', servicio_categoria.id,
+                'nombre', servicio_categoria.nombre
+            )
+            from servicio_categoria
+            where servicio_categoria.id = servicio.servicio_categoria_id
+        ),
+        'precioUnitario', servicio.precio_uni,
+        'esSalida', servicio.es_salida
+    ) as data
+    from servicio
+    left join elemento_economico on elemento_economico.id = servicio.id
+
+    union all
+
+    select json_object(
+        'id', producto.id,
+        'uuid', elemento_economico.uuid,
+        'codigo', elemento_economico.codigo,
+        'nombre', bien.nombre,
+        'magnitud', (
+            select json_object(
+                'id', magnitud.id,
+                'nombre', magnitud.nombre,
+                'magnitudTipo', (
+                    select json_object(
+                        'id', magnitud_tipo.id,
+                        'nombre', magnitud_tipo.nombre
+                    ) as magnitud_tipo
+                    from magnitud_tipo
+                    where magnitud_tipo.id = magnitud.magnitud_tipo_id
+                )
+            ) as magnitud
+            from magnitud
+            where magnitud.id = bien.magnitud_id
+        ),
+        'bienMarca', (
+            select json_object(
+                'id', bien_marca.id,
+                'nombre', bien_marca.nombre
+            ) as bien_marca
+            from bien_marca
+            where bien_marca.id = bien.bien_marca_id
+        ),
+        'bienCategoria', (
+            select json_object(
+                'id', bien_categoria.id,
+                'nombre', bien_categoria.nombre
+            ) as bien_categoria
+            from bien_categoria
+            where bien_categoria.id = bien.bien_categoria_id
+        ),
+        'precioUnitario', producto.precio_uni,
+        'esSalida', producto.es_salida
+    ) as data
+    from producto
+    left join bien on bien.id = producto.id
+    left join elemento_economico on elemento_economico.id = bien.id
+
+) as collection;
+`;
+
+const query2 = `
+select json_object(
+    'id', servicio.id,
+    'uuid', elemento_economico.uuid,
+    'codigo', elemento_economico.codigo,
+    'nombre', servicio.nombre,
+    'magnitudNombre', 'uni',
+    'servicioCategoria', (
+        select json_object(
+            'id', servicio_categoria.id,
+            'nombre', servicio_categoria.nombre
+        )
+        from servicio_categoria
+        where servicio_categoria.id = servicio.servicio_categoria_id
+    ),
+    'precioUnitario', servicio.precio_uni,
+    'esSalida', servicio.es_salida
+) as servicio 
+from servicio
+left join elemento_economico on elemento_economico.id = servicio.id;
+`;
+
+const query3 = `
+select json_object(
+        'id', servicio.id,
+        'uuid', elemento_economico.uuid,
+        'codigo', elemento_economico.codigo,
+        'nombre', servicio.nombre,
+        'magnitudNombre', 'uni',
+        'servicioCategoria', (
+            select json_object(
+                'id', servicio_categoria.id,
+                'nombre', servicio_categoria.nombre
+            )
+            from servicio_categoria
+            where servicio_categoria.id = servicio.servicio_categoria_id
+        ),
+        'precioUnitario', servicio.precio_uni,
+        'esSalida', servicio.es_salida
+    ) as data
+    from servicio
+    left join elemento_economico on elemento_economico.id = servicio.id
+
+    union all
+
+    select json_object(
+        'id', producto.id,
+        'uuid', elemento_economico.uuid,
+        'codigo', elemento_economico.codigo,
+        'nombre', bien.nombre,
+        'magnitud', (
+            select json_object(
+                'id', magnitud.id,
+                'nombre', magnitud.nombre,
+                'magnitudTipo', (
+                    select json_object(
+                        'id', magnitud_tipo.id,
+                        'nombre', magnitud_tipo.nombre
+                    ) as magnitud_tipo
+                    from magnitud_tipo
+                    where magnitud_tipo.id = magnitud.magnitud_tipo_id
+                )
+            ) as magnitud
+            from magnitud
+            where magnitud.id = bien.magnitud_id
+        ),
+        'bienMarca', (
+            select json_object(
+                'id', bien_marca.id,
+                'nombre', bien_marca.nombre
+            ) as bien_marca
+            from bien_marca
+            where bien_marca.id = bien.bien_marca_id
+        ),
+        'bienCategoria', (
+            select json_object(
+                'id', bien_categoria.id,
+                'nombre', bien_categoria.nombre
+            ) as bien_categoria
+            from bien_categoria
+            where bien_categoria.id = bien.bien_categoria_id
+        ),
+        'precioUnitario', producto.precio_uni,
+        'esSalida', producto.es_salida
+    ) as data
+    from producto
+    left join bien on bien.id = producto.id
+    left join elemento_economico on elemento_economico.id = bien.id
+`;
+
+
+const getData = async () => {
+
+    const sequelize = new Sequelize(
+        'servicio_tecnico',
+        'root',
+        'root123',
+        {
+            host: 'localhost',
+            dialect: 'mysql',
+            port: 3306
+        }
+    );
+    
+    const data = await sequelize.query( query, {
+        type: QueryTypes.SELECT,
+        replacements: {
+            id: null,
+            nombre: null
+        }
+    } );
+
+}
+
+getData();

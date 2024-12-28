@@ -1,9 +1,8 @@
 import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { IComponent } from '../../../interfaces/IComponent';
-import { BehaviorSubject, of, Subscription } from 'rxjs';
+import { BehaviorSubject, Subscription } from 'rxjs';
 import { ComponentStore } from '../../../services/ComponentStore';
-import { Model } from 'apps/models/src/lib/Model';
 import { ButtonsMenuComponentVm, ButtonsMenuComponent } from '../../Components/ButtonsMenu/ButtonsMenu.component';
 import { ButtonsFooterComponentVm, ButtonsFooterComponent } from '../../Components/ButtonsFooter/ButtonsFooter.component';
 import { ModalService } from '../../../services/modal.service';
@@ -11,6 +10,7 @@ import { PropBehavior } from '../../../../../../models/src/lib/Model';
 import { MessageBoxComponent } from '../../Components/MessageBox/MessageBox.component';
 import { BUTTON_CLASS_BOOTSTRAP } from '../../../utils/ButtonsClass';
 import { FormsModule } from '@angular/forms';
+import { ItemType } from '../../../interfaces/ItemType';
 
 @Component({
   selector: 'app-object',
@@ -24,14 +24,15 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './Object.component.html',
   styleUrl: './Object.component.css',
 })
-export class ObjectComponent<T extends Model> implements IComponent<ObjectComponent<T>> {
+export class ObjectComponent<T extends ItemType> implements IComponent<ObjectComponent<T>> {
     
     @Input() id = -1;
-    @Input() store = new ComponentStore<T>( new Model() as T, of(new Model() as T) );
-    item: T = new Model() as T;
+    @Input() store = new ComponentStore<T>( {symbol: Symbol()} as T, () => ({symbol: Symbol()} as T) );
+    item: T = {symbol: Symbol()} as T;
 
     @Input() vm$ = new BehaviorSubject<ObjectComponentVm<T>>({
         title: '',
+        isCloseActive: true,
         state: StateObjectComponent.read,
         bindingProperties: []
     });
@@ -48,14 +49,18 @@ export class ObjectComponent<T extends Model> implements IComponent<ObjectCompon
     @Output() readonly onInit = new EventEmitter<ObjectComponent<T>>();
     @Output() readonly onDestroy = new EventEmitter<ObjectComponent<T>>();
     @Output() readonly onClose = new EventEmitter<ObjectComponentEventData<T>>();
+    
     @Output() readonly onCreate = new EventEmitter<ObjectComponentEventData<T>>();
     @Output() readonly onUpdate = new EventEmitter<ObjectComponentEventData<T>>();
     @Output() readonly onDelete = new EventEmitter<ObjectComponentEventData<T>>();
+    @Output() readonly onRead = new EventEmitter<ObjectComponentEventData<T>>();
+    @Output() readonly onCancelWrite = new EventEmitter<ObjectComponentEventData<T>>();
 
     sub = new Subscription();
     modalService = inject( ModalService );
     PropBehavior = PropBehavior;
     StateObjectComponent = StateObjectComponent;
+    String = String;
 
 
     private buttonsMenu2read = () => {
@@ -120,7 +125,14 @@ export class ObjectComponent<T extends Model> implements IComponent<ObjectCompon
                 {
                     class: BUTTON_CLASS_BOOTSTRAP.secondary,
                     title: 'Cancelar',
-                    onClick: e => this.close( e )
+                    onClick: e => {
+                        this.onCancelWrite.emit({
+                            event: e,
+                            sender: this,
+                            item: this.item
+                        });
+                        this.close( e )
+                    }
                 },
                 {
                     class: BUTTON_CLASS_BOOTSTRAP.primary,
@@ -142,10 +154,15 @@ export class ObjectComponent<T extends Model> implements IComponent<ObjectCompon
                     class: BUTTON_CLASS_BOOTSTRAP.secondary,
                     title: 'Cancelar',
                     onClick: e => {
-                        this.store.read().subscribe();
+                        this.store.getRead().subscribe();
                         this.vm$.next({
                             ...this.vm$.value,
                             state: StateObjectComponent.read
+                        });
+                        this.onCancelWrite.emit({
+                            event: e,
+                            sender: this,
+                            item: this.item
                         });
                     }
                 },
@@ -165,7 +182,15 @@ export class ObjectComponent<T extends Model> implements IComponent<ObjectCompon
         this.onInit.emit( this );
 
         this.sub.add( this.store.state$.subscribe({
-            next: state => this.item = state,
+            next: state => {
+                this.item = state;
+                if ( this.vm$.value.state === StateObjectComponent.create ) {
+                    console.log('state de objectComponent create');
+                }
+                else if ( this.vm$.value.state === StateObjectComponent.read ) {
+                    console.log('state de objectComponent read');   
+                }
+            },
             error: error => this.close( new Event( 'click' ) )
         }) );
 
@@ -191,6 +216,15 @@ export class ObjectComponent<T extends Model> implements IComponent<ObjectCompon
             }
 
         } ) );
+
+        this.sub.add( this.store.error$.subscribe( error => this.modalService.open( MessageBoxComponent ).subscribe( c => c.mensaje = error ) ) );
+    }
+
+    getTitle( title: ObjectComponentVm<T>['title'] )
+    {
+        title instanceof Function
+            ? title( this.store.getState() )
+            : title
     }
 
 
@@ -198,6 +232,17 @@ export class ObjectComponent<T extends Model> implements IComponent<ObjectCompon
     {
         this.modalService.close( this );
         this.onClose.emit({
+            event: e,
+            sender: this,
+            item: this.item
+        });
+    }
+
+    
+    read( e: Event )
+    {
+        this.store.getRead().subscribe();
+        this.onRead.emit({
             event: e,
             sender: this,
             item: this.item
@@ -256,13 +301,16 @@ export class ObjectComponent<T extends Model> implements IComponent<ObjectCompon
 
     ngOnDestroy(): void 
     {
+        console.log( ObjectComponent.name, 'destruido' );
         this.onDestroy.emit( this );
+        this.store.complete();
         this.sub.unsubscribe();
     }
+
 }
 
 
-export type ObjectComponentEventData<T extends Model> = 
+export type ObjectComponentEventData<T extends ItemType> = 
 {
     event: Event,
     sender: ObjectComponent<T>,
@@ -274,24 +322,27 @@ export enum StateObjectComponent
 {
     read,
     create,
-    update
+    update,
+    none
 }
 
 
-export interface BindingPropertyObjectComponent<T extends Model>
+export interface BindingPropertyObjectComponent<T extends ItemType>
 {
     title: string;
-    getValue: ( item: T, object?: boolean ) => T[keyof T] | undefined;
+    getValue?: ( item: T, object?: boolean ) => T[keyof T] | undefined;
     setValue?: ( item: T, value?: any ) => void;
-    onClick?: ( item: T ) => void;
     readonly?: boolean;
+    required?: boolean;
+    onClick?: ( item: T ) => void;
     behavior: PropBehavior;
 }
 
 
-export interface ObjectComponentVm<T extends Model>
+export interface ObjectComponentVm<T extends ItemType>
 {
-    title: string;
+    title: String | ( ( item: T ) => T[keyof T] );
+    isCloseActive: boolean;
     state: StateObjectComponent;
     bindingProperties: BindingPropertyObjectComponent<T>[];
 }

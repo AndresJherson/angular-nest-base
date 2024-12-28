@@ -1,44 +1,76 @@
-import { BehaviorSubject, catchError, map, Observable, tap, throwError } from "rxjs";
+import { BehaviorSubject, catchError, EMPTY, map, Observable, Subject, tap, throwError } from "rxjs";
 
 export class ComponentStore<T extends Object>
 {
-    private store$: BehaviorSubject<T>;
-    private read$: Observable<T>;
+    private storeData$: BehaviorSubject<T>;
     public readonly state$: Observable<T>;
 
-    constructor( initialState: T, read$: Observable<T> )
-    {   
-        this.store$ = new BehaviorSubject( initialState );
-        this.state$ = this.store$.asObservable();
-        this.read$ = read$;
-        this.read().subscribe()
+    private storeError$ = new Subject<string>();
+    public readonly error$ = this.storeError$.asObservable();
+
+    private read$: Observable<T>;
+
+
+    constructor( initialState: T, read$: Observable<T> | ( () => T ) )
+    {
+        this.storeData$ = new BehaviorSubject( initialState );
+        this.state$ = this.storeData$.asObservable();
+        this.read$ = read$ instanceof Observable
+                    ? read$
+                    : new Observable( o => {
+                        try {
+                            o.next( read$() );
+                            o.complete();
+                        }
+                        catch ( error ) {
+                            o.error( error );
+                        }
+                    } )
     }
 
 
     public getState(): T
     {
-        return this.store$.value;
+        return this.storeData$.value;
     }
     
     
-    public read(): Observable<undefined>
+    public getRead(): Observable<void>
     {
         return this.read$.pipe(
-            tap( state => this.store$.next( state ) ),
+            tap( state => this.storeData$.next( state ) ),
             catchError( error => {
-                this.store$.error( error );
-                this.store$.complete();
-                return throwError( () => error );
+                this.storeError$.next( error );
+                return error;
             } ),
             map( () => void 0 )
         );
     }
 
 
-    public setRead( read$: Observable<T> ): ComponentStore<T>
+    public setRead( read$: Observable<T> | ( () => T ) ): ComponentStore<T>
     {
-        this.read$ = read$;
+        this.read$ = read$ instanceof Observable
+                    ? read$
+                    : new Observable( o => {
+                        try {
+                            o.next( read$() );
+                            o.complete();
+                        }
+                        catch ( error ) {
+                            o.error( error );
+                        }
+                    } )
+
         return this;
+    }
+
+
+    complete(): void
+    {
+        this.read$ = EMPTY;
+        this.storeData$.complete();
+        this.storeError$.complete();
     }
 
 
@@ -47,42 +79,44 @@ export class ComponentStore<T extends Object>
     setState( newStateOrFn: ( ( state: T ) => T ) | T ): void
     {
         let newState;
-        if ( typeof newStateOrFn === 'function' ) {
-            newState = newStateOrFn( this.store$.value );
+        if ( newStateOrFn instanceof Function ) {
+            newState = newStateOrFn( this.storeData$.value );
         }
         else {
             newState = newStateOrFn;
         }
 
-        this.store$.next( newState );
+        this.storeData$.next( newState );
     }
 
 
     storeFromThis<K extends Object>( selectMapper: ( state: T ) => K ): ComponentStore<K>
     {
-        const initialState = selectMapper( this.getState() );
-
-        const read$ = new Observable<K>( o => {
-            try {
-                o.next( selectMapper( this.getState() ) );
-                o.complete();
-            }
-            catch ( error ) {
-                o.error( error );
-            }
-        } );
+        const initialState = selectMapper( this.storeData$.value );
         
-        const childStore = new ComponentStore<K>( initialState, read$ );
+        const childStore = new ComponentStore<K>( initialState, () => selectMapper( this.storeData$.value ) );
         
-        const sub = this.state$.subscribe({
-            next: state => childStore.read().subscribe(),
+        const s = this.state$.subscribe({
+            next: state => childStore.getRead().subscribe(),
             error: error => {
-                childStore.store$.error( error );
-                sub.unsubscribe();
+                childStore.storeData$.error( error );
+                setTimeout( () => s.unsubscribe(), 0 )
             },
             complete: () => {
-                childStore.store$.complete();
-                sub.unsubscribe();
+                childStore.storeData$.complete();
+                setTimeout( () => s.unsubscribe(), 0 )
+            }
+        });
+
+        const errorSub = this.error$.subscribe({
+            next: message => childStore.storeError$.next( message ),
+            error: error => {
+                childStore.storeError$.error( error );
+                setTimeout( () => errorSub.unsubscribe(), 0 )
+            },
+            complete: () => {
+                childStore.storeError$.complete();
+                setTimeout( () => errorSub.unsubscribe(), 0 )
             }
         });
 
@@ -95,14 +129,26 @@ export class ComponentStore<T extends Object>
         const childStore = new ComponentStore<K>( initialState, read$ );
 
         const s = this.state$.subscribe({
-            next: state => childStore.read().subscribe(),
+            next: state => childStore.getRead().subscribe(),
             error: error => {
-                childStore.store$.error( error );
-                setTimeout( () => s.unsubscribe(), 0 )
+                childStore.storeData$.error( error );
+                setTimeout( () => s.unsubscribe(), 0 );
             },
             complete: () => {
-                childStore.store$.complete();
-                setTimeout( () => s.unsubscribe(), 0 )
+                childStore.storeData$.complete();
+                setTimeout( () => s.unsubscribe(), 0 );
+            }
+        });
+
+        const errorSub = this.error$.subscribe({
+            next: message => childStore.storeError$.next( message ),
+            error: error => {
+                childStore.storeError$.error( error );
+                setTimeout( () => errorSub.unsubscribe(), 0 )
+            },
+            complete: () => {
+                childStore.storeError$.complete();
+                setTimeout( () => errorSub.unsubscribe(), 0 )
             }
         });
 
@@ -110,57 +156,66 @@ export class ComponentStore<T extends Object>
     }
 
 
-    subscribeFrom<K extends Object>( parentStore: ComponentStore<K>, selectMapper: ( state: K ) => T )
+    subscribeFromStore<K extends Object>( parentStore: ComponentStore<K>, selectMapper: ( state: K ) => T )
     {
-        const read$ = new Observable<T>( o => {
-            try {
-                o.next( selectMapper( parentStore.getState() ) );
-                o.complete();
-            }
-            catch ( error ) {
-                o.error( error );
-            }
-        } );
-
-        this.setRead( read$ );
+        this.setRead( () => selectMapper( parentStore.storeData$.value ) );
 
         const s = parentStore.state$.subscribe({
-            next: state => this.read().subscribe(),
+            next: state => this.getRead().subscribe(),
             error: error => {
-                this.store$.error( error );
+                this.storeData$.error( error );
                 setTimeout( () => s.unsubscribe(), 0 )
             },
             complete: () => {
-                this.store$.complete();
-                setTimeout( () => s.unsubscribe(), 0 )
+                this.storeData$.complete();
+                setTimeout( () => s.unsubscribe(), 0 );
             }
         });
+
+        const errorSub = parentStore.error$.subscribe({
+            next: message => this.storeError$.next( message ),
+            error: error => {
+                this.storeError$.error( error );
+                setTimeout( () => errorSub.unsubscribe(), 0 )
+            },
+            complete: () => {
+                this.storeError$.complete();
+                setTimeout( () => errorSub.unsubscribe(), 0 )
+            }
+        });
+
+        return this;
     }
 
-    emitTo<K extends Object>( childStore: ComponentStore<K>, selectMapper: ( state: T ) => K )
-    {
-        const read$ = new Observable<K>( o => {
-            try {
-                o.next( selectMapper( this.getState() ) );
-                o.complete();
-            }
-            catch ( error ) {
-                o.error( error );
-            }
-        } );
 
-        childStore.setRead( read$ );
+    emitToStore<K extends Object>( childStore: ComponentStore<K>, selectMapper: ( state: T ) => K )
+    {
+        childStore.setRead( () => selectMapper( this.storeData$.value ) );
 
         const s = this.state$.subscribe({
-            next: state => childStore.read().subscribe(),
+            next: state => childStore.getRead().subscribe(),
             error: error => {
-                childStore.store$.error( error );
+                childStore.storeData$.error( error );
                 setTimeout( () => s.unsubscribe(), 0 )
             },
             complete: () => {
-                childStore.store$.complete();
+                childStore.storeData$.complete();
                 setTimeout( () => s.unsubscribe(), 0 )
             }
         });
+
+        const errorSub = this.error$.subscribe({
+            next: message => childStore.storeError$.next( message ),
+            error: error => {
+                childStore.storeError$.error( error );
+                setTimeout( () => errorSub.unsubscribe(), 0 )
+            },
+            complete: () => {
+                childStore.storeError$.complete();
+                setTimeout( () => errorSub.unsubscribe(), 0 )
+            }
+        });
+
+        return this;
     }
 }

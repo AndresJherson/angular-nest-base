@@ -14,23 +14,24 @@ export class HttpService {
 
     post<T>( body: HttpBody ): Observable<T>
     {
-        console.log(body.values)
-        return this.modalService.open( LoaderComponent, false ).pipe(
+        return this.modalService.open( LoaderComponent, true ).pipe(
             switchMap( l => {
 
                 const headers = new HttpHeaders({
                     'Content-Type': 'application/json'
                 });
+
+                console.log( 'request', body )
         
                 return this.httpClient.post<T>( 'http://localhost:3000/api', body, {
                     headers,
                     withCredentials: true
                 } )
                 .pipe(
-                    tap( v => console.log( v ) ),
+                    tap( data => console.log( 'response', data ) ),
                     catchError( error => {
                         console.log( error );
-                        return throwError( () => error );
+                        return throwError( () => error.statusText ?? error.message );
                     } ),
                     finalize( () => this.modalService.close( l ) ),
                 );

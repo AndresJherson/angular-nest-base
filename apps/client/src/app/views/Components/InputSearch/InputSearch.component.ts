@@ -46,6 +46,12 @@ export class InputSearchComponent<T extends ItemType> {
             data: data
         });
     }
+
+
+    ngOnDestroy()
+    {
+        this.store.complete();
+    }
 }
 
 

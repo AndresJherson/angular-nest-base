@@ -1,12 +1,13 @@
 import Decimal from "decimal.js";
 import { DocumentoTransaccion } from "../DocumentoTransaccion";
-import { Cliente } from "../../Personas/Cliente";
 import { Prop, PropBehavior } from "../../Model";
 import { DocumentoIdentificacion } from "../../Personas/DocumentoIdentificacion";
 import { LiquidacionTipo } from "../LiquidacionTipo";
 import { NotaVentaDetalle } from "./NotaVentaDetalle";
 import { NotaVentaCredito } from "./NotaVentaCredito";
 import { ErrorModel } from "../../utils/ErrorModel";
+import { Cliente } from "../../Personas/Cliente/Cliente";
+import { Credito } from "../Credito";
 
 
 export class NotaVenta extends DocumentoTransaccion
@@ -32,6 +33,72 @@ export class NotaVenta extends DocumentoTransaccion
     {
         super();
         Prop.initialize( this, json );
+
+        let importeNeto = this.importeNeto;
+        Object.defineProperty( this, "importeNeto", {
+            get: () => importeNeto,
+            set( value: number ) {
+              importeNeto = value;
+              this.credito.importeCapitalInicial = value;
+            },
+        } );
+
+        Object.defineProperty( this.credito, "importeCapitalInicial", {
+            get: () => importeNeto,
+            set( value: number ) {}
+        } );
+    }
+
+
+    override setKeysSQL( keys: {
+        id: number,
+        notaId: number,
+        detalleId: number,
+        creditoId: number,
+        cuotaId: number
+    } ): this {
+
+
+        this.notas.forEach( nota => nota.set({
+            documentoTransaccion: new DocumentoTransaccion({ id: this.id })
+        }) );
+        
+
+        this.detalles.reduce( 
+            ( id, detalle ) => {
+            
+                detalle.set({
+                    id: id,
+                    notaVenta: new NotaVenta({ id: this.id })
+                });
+
+                return id++;
+            },
+            keys.detalleId
+        );
+
+        
+        this.credito.set({
+            id: keys.creditoId,
+            documentoTransaccion: new NotaVenta({id: this.id})
+        });
+
+
+        this.credito.cuotas.reduce(
+            ( id, cuota ) => {
+
+                cuota.set({
+                    id: id,
+                    credito: new Credito({ id: keys.creditoId })
+                });
+
+                return id++;
+            },
+            keys.cuotaId
+        );
+        
+
+        return this;
     }
 
 
@@ -78,6 +145,28 @@ export class NotaVenta extends DocumentoTransaccion
     }
 
 
+    setCliente( cliente: Cliente ): this
+    {
+        this.cliente = cliente;
+        return this;
+    }
+
+
+    setReceptorDocumentoIdentificacion( documentoIdentificacion: DocumentoIdentificacion ): this
+    {
+        this.receptorDocumentoIdentificacion = documentoIdentificacion;
+        return this;
+    }
+
+
+    setLiquidacionTipo( id: 1 | 2 ): this
+    {
+        this.liquidacionTipo = new LiquidacionTipo({ id });
+        if ( id === 2 ) this.credito.calcularInformacionTransaccion();
+        return this;
+    }
+
+
     override calcularInformacionTransaccion(): this
     {
         try {
@@ -104,7 +193,7 @@ export class NotaVenta extends DocumentoTransaccion
                                 .toDecimalPlaces( 2 )
                                 .toNumber();
 
-            if ( this.liquidacionTipo?.id === 2 ) this.credito.calcularInformacionTransaccion( this );
+            if ( this.liquidacionTipo?.id === 2 ) this.credito.calcularInformacionTransaccion();
 
         }
         catch ( error: any ) {

@@ -1,0 +1,90 @@
+<div class="tw-flex tw-justify-between">
+
+    <div>Comentarios</div>
+
+    <button type="button"
+        class="btn btn-primary !tw-text-base"
+        (click)="isCreate = true">Agregar Nota</button>
+
+</div>
+
+<hr style="margin: 0;">
+
+
+@if ( isCreate ) {
+
+    <div>
+
+        <textarea class="form-control !tw-max-h-[25vh]"
+            maxlength="1000"
+            [(ngModel)]="nota2create.descripcion"></textarea>
+
+        <div class="tw-flex tw-justify-end tw-gap-4 tw-mt-4">
+            <button type="button"
+                class="btn btn-light !tw-text-base"
+                (click)="reset()">Cancelar</button>
+            <button type="button"
+                class="btn !btn-primary !tw-bg-blue-950 !tw-text-base !tw-text-white"
+                (click)="createNota( $event )">Crear</button>
+        </div>
+
+    </div>
+
+    <hr style="margin: 0;">
+
+}
+
+<div class="tw-max-h-full tw-overflow-y-auto tw-flex tw-flex-col tw-gap-4">
+
+    @for (nota of notas; track $index) {
+
+        <div class="tw-min-w-40 tw-py-2 tw-flex tw-flex-col tw-gap-2">
+
+            <div class="tw-flex tw-gap-4">
+
+                <div class="tw-fex tw-text-base tw-text-gray-600">
+                    <i class="bi bi-person-fill"></i>
+                    &middot;
+                    <span>{{ nota.usuario?.nombre ?? 'Desconocido' }}</span>
+                    @if ( nota.tiempoTranscurrido !== undefined && nota.tiempoTranscurrido.length > 0 ) {
+                        &middot;
+                        <span>{{ nota.tiempoTranscurrido }}</span>
+                    }
+                    @if ( Prop.toDateTime( nota.fechaCreacion ).isValid  ) {
+                        <span class="tw-text-[10px] tw-self-end"> ( {{ Prop.toDateTime( nota.fechaCreacion ).toFormat( 'dd/MM/yyyy, t a' ) }} )</span>
+                    }
+                </div>
+
+
+                <div class="tw-relative tw-flex" #containerMenu>
+
+                    <i class="bi bi-three-dots-vertical tw-cursor-pointer tw-text-base tw-px-2"
+                        (click)="buttonMenu.checked = !buttonMenu.checked"></i>
+                    <input type="radio" 
+                        [name]="'CollectionNotaComponent_'+instanceId"
+                        style="display: none;"
+                        #buttonMenu>
+    
+                    @if ( buttonMenu.checked ) {
+                        <div class="tw-absolute tw-top-0 tw-left-full tw-rounded tw-bg-white tw-shadow tw-text-base tw-z-10">
+                            <div class="tw-p-2 tw-cursor-pointer hover:tw-bg-gray-200"
+                                (click)="deleteNota( nota )">Eliminar</div>
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+            <div>
+                @for (parrafo of readText( nota.descripcion ?? '' ); track $index) {
+                    <p class="tw-text-xl tw-m-0">{{ parrafo }}</p>
+                }
+            </div>
+
+
+        </div>
+
+    }
+
+</div>

@@ -1,0 +1,22 @@
+<div class="tw-mb-4">
+
+    <div class="tw-max-w-full tw-min-h-max tw-flex tw-overflow-x-auto">
+    
+        @for (tab of tabs; track $index) {
+    
+            <button type="button"
+                (click)="selectTab( tab )"
+                class="tw-bg-white tw-px-4 tw-py-2 tw-border-none tw-cursor-pointer"
+                [ngClass]="{
+                    '!tw-border-solid tw-border-b-2 tw-border-b-blue-800': tab.active
+                }">{{ tab.title }}</button>
+    
+        }
+    
+    </div>
+    
+    <hr style="margin: 0;">
+    
+</div>
+
+<ng-content></ng-content>

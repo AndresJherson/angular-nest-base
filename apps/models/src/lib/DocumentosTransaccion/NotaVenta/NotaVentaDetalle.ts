@@ -26,6 +26,13 @@ export class NotaVentaDetalle extends Model
     }
 
 
+    setElementoEconomico( elementoEconomico: ElementoEconomico ): this
+    {
+        this.elementoEconomico = elementoEconomico;
+        return this;
+    }
+
+
     calcularImportes(): this
     {
         try {

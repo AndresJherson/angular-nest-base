@@ -1,7 +1,7 @@
 import { DateTime } from "luxon";
 import { DocumentoTransaccion } from "../DocumentosTransaccion/DocumentoTransaccion";
 import { Model, Prop, PropBehavior } from "../Model";
-import { Usuario } from "../Personas/Usuario";
+import { Usuario } from "../Personas/Usuario/Usuario";
 
 @Prop.Class()
 export class DocumentoMovimiento extends Model
@@ -43,7 +43,7 @@ export class DocumentoMovimiento extends Model
     }
 
 
-    calcularImportes(): this
+    calcularInformacionMovimiento(): this
     {
         return this;
     }

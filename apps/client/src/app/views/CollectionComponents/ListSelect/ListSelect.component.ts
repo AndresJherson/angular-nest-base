@@ -9,6 +9,7 @@ import { ButtonsFooterComponentVm, ButtonsFooterComponent } from '../../Componen
 import { ModalService } from '../../../services/modal.service';
 import { BUTTON_CLASS_BOOTSTRAP } from '../../../utils/ButtonsClass';
 import { FormsModule } from '@angular/forms';
+import { MessageBoxComponent } from '../../Components/MessageBox/MessageBox.component';
 
 @Component({
   selector: 'app-list-select',
@@ -48,7 +49,7 @@ export class ListSelectComponent<T extends ItemType> implements IComponent<ListS
             {
                 class: BUTTON_CLASS_BOOTSTRAP.secondary,
                 title: 'Cancelar',
-                onClick: ( e: Event ) => this.close()
+                onClick: ( e: Event ) => this.close( e )
             },
             {
                 class: BUTTON_CLASS_BOOTSTRAP.primary,
@@ -74,10 +75,10 @@ export class ListSelectComponent<T extends ItemType> implements IComponent<ListS
         this.secondStore = this.store.storeFromThis( state => state );
 
         this.sub.add( this.secondStore.state$.subscribe( state => {
-
-            this.data = state; console.log( this.data);
-
+            this.data = state;
         } ) );
+
+        this.sub.add( this.secondStore.error$.subscribe( error => this.modalService.open( MessageBoxComponent ).subscribe( c => c.mensaje = error ) ) );
     }
 
 
@@ -100,7 +101,7 @@ export class ListSelectComponent<T extends ItemType> implements IComponent<ListS
     }
 
 
-    close()
+    close( e: Event )
     {
         this.modalService.close( this );
     }
@@ -120,7 +121,7 @@ export class ListSelectComponent<T extends ItemType> implements IComponent<ListS
             item: this.itemSelected
         });
         
-        this.close();
+        this.close( e );
     }
 
 
@@ -128,6 +129,8 @@ export class ListSelectComponent<T extends ItemType> implements IComponent<ListS
     {
         this.onDestroy.emit( this );
         this.sub.unsubscribe();
+        this.store.complete();
+        this.secondStore.complete();
     }
 }
 

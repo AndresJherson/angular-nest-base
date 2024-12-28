@@ -41,10 +41,10 @@ export class Cuota extends Model
 
             const dateTimeInicio = Prop.toDateTime( this.fechaInicio );
             const dateTimeFinal = Prop.toDateTime( this.fechaVencimiento );
-            const interval = Interval.fromDateTimes( dateTimeInicio, dateTimeFinal ); 
+            const interval = Interval.fromDateTimes( dateTimeInicio, dateTimeFinal );             
 
             this.duracionMinutos = interval.isValid
-                                    ? interval.toDuration().minutes
+                                    ? interval.length( 'minutes' )
                                     : 0;
             
         }

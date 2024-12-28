@@ -12,10 +12,7 @@ export class ErrorModel extends Error
         }
 
         this.messages.push( message );
-        
-        if (Error.captureStackTrace) {
-            Error.captureStackTrace(this, ErrorModel);
-        }
+
     }
 
     getAllMessages(): string {

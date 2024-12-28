@@ -1,12 +1,12 @@
 import Decimal from "decimal.js";
 import { Prop, PropBehavior } from "../Model";
-import { Cliente } from "../Personas/Cliente";
 import { DocumentoIdentificacion } from "../Personas/DocumentoIdentificacion";
 import { Proporcion, TipoProporcion } from "../utils/Proporcion";
 import { Cuota } from "./Cuota";
 import { DocumentoTransaccion } from "./DocumentoTransaccion";
 import { DateTime, Interval } from "luxon";
 import { ErrorModel } from "../utils/ErrorModel";
+import { Cliente } from "../Personas/Cliente/Cliente";
 
 export class Credito extends DocumentoTransaccion
 {
@@ -19,6 +19,7 @@ export class Credito extends DocumentoTransaccion
     @Prop.Set() tasaInteresDiario: number = 0;
     @Prop.Set() importeCapitalInicial:number = 0;
     @Prop.Set() importeInteres: number = 0;
+    @Prop.Set() porcentajeInteres: number = 0;
     @Prop.Set() importeCapitalFinal:number = 0;
 
     @Prop.Set( PropBehavior.array, () => Cuota ) cuotas: Cuota[] = [];
@@ -39,7 +40,7 @@ export class Credito extends DocumentoTransaccion
     agregarCuota( cuota: Cuota ): this
     {
         cuota.fechaInicio = this.cuotas.length === 0
-                            ? ( cuota.fechaInicio ?? DateTime.local().toSQL() )
+                            ? ( cuota.fechaInicio ?? Prop.toDateTimeNow().toSQL() )
                             : ( cuota.fechaInicio ?? this.cuotas[ this.cuotas.length - 1 ].fechaVencimiento );
 
         this.cuotas.push( cuota );
@@ -88,6 +89,58 @@ export class Credito extends DocumentoTransaccion
 
 
     calcularCuotas(): this
+    {
+        try {
+            this.cuotas.forEach( ( cuota, i ) => {
+    
+                cuota.importeAmortizacion = this.amortizacionXminuto.calcularAntecedente( cuota.duracionMinutos )
+                                            .toDecimalPlaces( 2 )            
+                                            .toNumber();
+                                            
+                cuota.importeInteres = this.interesXminuto.calcularAntecedente( cuota.duracionMinutos )
+                                        .toDecimalPlaces( 2 )
+                                        .toNumber();
+
+                cuota.importeCuota = new Decimal( cuota.importeAmortizacion )
+                                    .plus( cuota.importeInteres )
+                                    .toDecimalPlaces( 2 )
+                                    .toNumber();
+    
+                cuota.importeSaldo = i === 0
+                                    ? new Decimal( this.importeCapitalInicial )
+                                        .minus( cuota.importeAmortizacion )
+                                        .toDecimalPlaces( 2 )
+                                        .toNumber()
+                                    : new Decimal( this.cuotas[ i - 1 ].importeSaldo )
+                                        .minus( cuota.importeAmortizacion )
+                                        .toDecimalPlaces( 2 )
+                                        .toNumber();
+                        
+                cuota.importeMora = 0;
+
+    
+                if ( !cuota.esActivoMora ) return;
+                
+                const interval = Interval.fromDateTimes( Prop.toDateTime( cuota.fechaVencimiento ), Prop.toDateTime( cuota.fechaLimiteMora ) );
+                const minutos = interval.isValid
+                                ? interval.length( 'minutes' )
+                                : 0;
+    
+                cuota.importeMora = this.interesXminuto.calcularAntecedente( minutos )
+                                    .toDecimalPlaces( 2 )
+                                    .toNumber();
+    
+            } );
+        }
+        catch ( error ) {
+            throw new ErrorModel( 'Error al calcular cuotas', error );
+        }
+
+        return this;
+    }
+
+
+    override calcularInformacionTransaccion(): this
     {   
         try {
 
@@ -96,6 +149,11 @@ export class Credito extends DocumentoTransaccion
                 ( minuto, cuota, i ) => {
                     
                     cuota.numero = i + 1;
+
+                    cuota.fechaInicio = i === 0
+                                        ? cuota.fechaInicio
+                                        : this.cuotas[ i - 1 ].fechaVencimiento;
+
                     return minuto.plus( cuota.calcularDuracion().duracionMinutos )
     
                 },
@@ -140,75 +198,42 @@ export class Credito extends DocumentoTransaccion
             this.cuotaXminuto.consecuente = 1;
     
     
-    
-            let saldo = this.importeCapitalInicial;
-    
-            this.cuotas.forEach( ( cuota, i ) => {
-    
-                cuota.importeAmortizacion = this.amortizacionXminuto.calcularAntecedente( cuota.duracionMinutos ?? 0 )
-                                            .toDecimalPlaces( 2 )
-                                            .toNumber();
-                                            
-                cuota.importeInteres = this.interesXminuto.calcularAntecedente( cuota.duracionMinutos ?? 0 )
-                                        .toDecimalPlaces( 2 )
-                                        .toNumber();
-    
-                cuota.importeCuota = this.cuotaXminuto.calcularAntecedente( cuota.duracionMinutos ?? 0 )
-                                    .toDecimalPlaces( 2 )
-                                    .toNumber();
-    
-                const decimalSaldo = new Decimal( saldo ?? 0 )
-                                    .minus( cuota.importeCuota )
-                                    .toNumber();
-                
-                saldo = decimalSaldo > 0
-                        ? decimalSaldo
-                        : 0;
-    
-                cuota.importeSaldo = saldo;
-                cuota.importeMora = 0;
-    
-                if ( !cuota.esActivoMora ) return;
-                
-                const interval = Interval.fromDateTimes( Prop.toDateTime( cuota.fechaVencimiento ), Prop.toDateTime( cuota.fechaLimiteMora ) );
-                const minutos = interval.isValid
-                                ? interval.toDuration().minutes
-                                : 0;
-    
-                cuota.importeMora = this.interesXminuto.calcularAntecedente( minutos )
-                                    .toDecimalPlaces( 2 )
-                                    .toNumber();
-    
-            } );
-
-        }
-        catch ( error ) {
-            throw new ErrorModel( 'Error al calcular cuotas', error );
-        }
-
-
-        return this;
-    }
-
-
-    override calcularInformacionTransaccion(): this 
-    {
-        try {
-
-            this.calcularCuotas();
-
             this.importeInteres = this.interesXminuto.calcularAntecedente( this.duracionMinutos )
                                 .toDecimalPlaces( 2 )
                                 .toNumber();
+
+            this.porcentajeInteres = new Decimal( this.importeInteres )
+                                        .div( this.importeCapitalInicial )
+                                        .mul( 100 )
+                                        .toDecimalPlaces( 2 )
+                                        .toNumber();
 
             this.importeCapitalFinal = new Decimal( this.importeCapitalInicial )
                                     .plus( this.importeInteres )
                                     .toDecimalPlaces( 2 )
                                     .toNumber();
+    
+            this.calcularCuotas();
+
+            const cuotasLength = this.cuotas.length;
+            const ultimaCuota = this.cuotas[ cuotasLength - 1 ];
+            if ( cuotasLength > 1 && ultimaCuota.importeSaldo !== 0 ) {
+                
+                ultimaCuota.importeAmortizacion = this.cuotas[ cuotasLength - 2 ].importeSaldo;
+                ultimaCuota.importeCuota = new Decimal( ultimaCuota.importeAmortizacion )
+                                            .plus( ultimaCuota.importeInteres )
+                                            .toDecimalPlaces( 2 )
+                                            .toNumber();
+                ultimaCuota.importeSaldo = 0;
+
+            }
+
+
         }
         catch ( error ) {
-            throw new ErrorModel( 'Error al calcular información del crédito', error );
+            throw new ErrorModel( 'Error al calcular el credito', error );
         }
+
 
         return this;
     }

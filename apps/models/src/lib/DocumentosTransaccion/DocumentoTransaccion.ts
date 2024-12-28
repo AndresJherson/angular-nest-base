@@ -1,16 +1,16 @@
 import Decimal from "decimal.js";
-import { EntradaEfectivo } from "../DocumentosMovimiento/EntradaEfectivo";
-import { MovimientoEfectivo } from '../DocumentosMovimiento/MovimientoEfectivo';
-import { MovimientoPantalla } from "../DocumentosMovimiento/MovimientoPantalla";
-import { MovimientoProducto } from "../DocumentosMovimiento/MovimientoProducto";
 import { Model, Prop, PropBehavior } from "../Model";
-import { Carpeta } from "../Otros/Carpeta";
+import { Carpeta } from "./Carpeta";
 import { Establecimiento } from "../Personas/Establecimiento";
-import { Usuario } from "../Personas/Usuario";
-import { SalidaEfectivo } from "../DocumentosMovimiento/SalidaEfectivo";
+import { SalidaEfectivo } from "../DocumentosMovimiento/MovimientoEfectivo/SalidaEfectivo";
 import { ErrorModel } from "../utils/ErrorModel";
 import { DateTime } from 'luxon';
 import { Nota } from "./Nota";
+import { MovimientoEfectivo } from "../DocumentosMovimiento/MovimientoEfectivo/MovimientoEfectivo";
+import { MovimientoProducto } from "../DocumentosMovimiento/MovimientoProducto/MovimientoProducto";
+import { MovimientoPantalla } from "../DocumentosMovimiento/MovimientoPantalla/MovimientoPantalla";
+import { EntradaEfectivo } from "../DocumentosMovimiento/MovimientoEfectivo/EntradaEfectivo";
+import { Usuario } from "../Personas/Usuario/Usuario";
 
 @Prop.Class()
 export class DocumentoTransaccion extends Model
@@ -52,24 +52,8 @@ export class DocumentoTransaccion extends Model
 
     agregarNota( nota: Nota ): this
     {
+        nota.fechaCreacion = nota.fechaCreacion ?? Prop.toDateTimeNow().toSQL();
         this.notas.unshift( nota );
-        return this;
-    }
-
-
-    actualizarNota( nota: Nota ): this
-    {
-        let i = this.notas.findIndex( n => n.symbol === nota.symbol );
-
-        i = i === -1
-            ? this.notas.findIndex( n =>
-                ( n.id === undefined || nota.id === undefined )
-                ? false
-                : ( n.id === nota.id )
-            )
-            : i;
-
-        if ( i !== -1 ) this.notas[ i ] = nota;
         return this;
     }
 

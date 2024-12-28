@@ -9,7 +9,7 @@ import { ButtonsMenuComponentVm, ButtonsMenuComponent } from '../../Components/B
 import { ButtonsFooterComponentVm, ButtonsFooterComponent } from '../../Components/ButtonsFooter/ButtonsFooter.component';
 import { ModalService } from '../../../services/modal.service';
 import { PropBehavior } from '../../../../../../models/src/lib/Model';
-import Enumerable from 'linq';
+// import Enumerable from 'linq';
 import { MessageBoxComponent } from '../../Components/MessageBox/MessageBox.component';
 import { BUTTON_CLASS_BOOTSTRAP } from '../../../utils/ButtonsClass';
 import { FormsModule } from '@angular/forms';
@@ -63,6 +63,7 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
         buttonsHtml: [],
     });
 
+
     // @Input() collectionFilterComponentVm$ = new BehaviorSubject<CollectionFilterComponentVm<T>>({
     //     dataBinding: [],
     //     stateComponent: StateCollectionFilterComponent.once
@@ -109,7 +110,7 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
                                     buttonsHtml: []
                                 });
 
-                                this.store.read().subscribe();
+                                this.store.getRead().subscribe();
                             }
                         },
                         {
@@ -167,7 +168,7 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
                                     buttonsHtml: []
                                 });
 
-                                this.store.read().subscribe({
+                                this.store.getRead().subscribe({
                                     next: s => this.modalService.open( MessageBoxComponent).subscribe( c => c.mensaje = 'Lectura del estado' ),
                                     error: error => this.modalService.open( MessageBoxComponent ).subscribe( c => c.mensaje = error )
                                 })
@@ -215,6 +216,88 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
         },
     };
 
+
+    buttonsFooter2RadioButton = () => {
+        this.buttonsFooterComponentVm$.next({
+            ...this.buttonsFooterComponentVm$.value,
+            buttonsHtml: [
+                {
+                    title: 'Reestablecer',
+                    class: BUTTON_CLASS_BOOTSTRAP.secondary,
+                    onClick: e => {
+                        this.onResetItem.emit({
+                            event: e,
+                            sender: this,
+                            item: undefined
+                        });
+
+                        this.close( e );
+                    }
+                },
+                {
+                    title: 'Cancelar',
+                    class: BUTTON_CLASS_BOOTSTRAP.secondary,
+                    onClick: e => this.close( e )
+                },
+                {
+                    title: 'Confirmar',
+                    class: BUTTON_CLASS_BOOTSTRAP.primary,
+                    onClick: e => {
+                        const item = this.getDataChecked()[ 0 ];
+                        if ( item )
+                            this.onSelectItem.emit({
+                                event: e,
+                                sender: this,
+                                item
+                            });
+
+                        this.close( e );
+                    }
+                },
+            ]
+        });
+    };
+
+    buttonsFooter2CheckBox = () => {
+        this.buttonsFooterComponentVm$.next({
+            ...this.buttonsFooterComponentVm$.value,
+            buttonsHtml: [
+                {
+                    title: 'Reestablecer',
+                    class: BUTTON_CLASS_BOOTSTRAP.secondary,
+                    onClick: e => {
+                        this.onResetItems.emit({
+                            event: e,
+                            sender: this,
+                            data: []
+                        });
+                        this.close( e );
+                    }
+                },
+                {
+                    title: 'Cancelar',
+                    class: BUTTON_CLASS_BOOTSTRAP.secondary,
+                    onClick: e => this.close( e )
+                },
+                {
+                    title: 'Confirmar',
+                    class: BUTTON_CLASS_BOOTSTRAP.primary,
+                    onClick: e => {
+                        const data = this.getDataChecked();
+                        if ( data.length > 0 )
+                            this.onSelectItems.emit({
+                                event: e,
+                                sender: this,
+                                data
+                            });
+
+                        this.close( e );
+                    }
+                },
+            ]
+        });
+    }
+
     @ViewChild( 'tableBody' ) private tableBody?: ElementRef<HTMLElement>
     private onClickDocument = ( e: Event ) => {
         if ( !this.tableBody?.nativeElement.contains( e.target as HTMLElement ) ) {
@@ -230,10 +313,15 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
     @Output() readonly onInit = new EventEmitter<TableComponent<T>>();
     @Output() readonly onDestroy = new EventEmitter();
     @Output() readonly onClose = new EventEmitter<TableComponentEventData<T>>();
+
     @Output() readonly onSelectItem = new EventEmitter<TableComponentItemEventData<T>>();
-    @Output() readonly onAddItem = new EventEmitter<TableComponentEventData<T>>();
+    @Output() readonly onSelectItems = new EventEmitter<TableComponentEventData<T>>();
+    @Output() readonly onResetItem = new EventEmitter<TableComponentResetItemEventData<T>>();
+    @Output() readonly onResetItems = new EventEmitter<TableComponentResetEventData<T>>();
     @Output() readonly onUpdateItems = new EventEmitter<TableComponentEventData<T>>();
     @Output() readonly onDeleteItems = new EventEmitter<TableComponentEventData<T>>();
+    @Output() readonly onAddItem = new EventEmitter<TableComponentEventData<T>>();
+    @Output() readonly onReadItems = new EventEmitter<TableComponentEventData<T>>();
 
     @Output() readonly onImport = new EventEmitter<TableComponentEventData<T>>();
     @Output() readonly onExport = new EventEmitter<TableComponentEventData<T>>();
@@ -256,11 +344,9 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
         this.secondStore = this.store.storeFromThis<T[]>( state => state );
         this.thirdStore = this.secondStore.storeFromThis<T[]>( state => state );
 
-        this.sub.add( this.thirdStore.state$.subscribe( state => {
+        this.sub.add( this.thirdStore.state$.subscribe( data => this.data = data ) );
 
-            this.data = state;
-
-        } ) );
+        this.sub.add( this.thirdStore.error$.subscribe( error => this.modalService.open( MessageBoxComponent ).subscribe( c => c.mensaje = error ) ) );
 
         this.sub.add( this.vm$.subscribe( vm => {
 
@@ -268,6 +354,13 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
                 ...this.inputSearchComponentVm$.value,
                 bindingProperties: vm.bindingProperties
             });
+
+            if ( vm.stateRow === StateRowTableComponent.radioButton ) {
+                this.buttonsFooter2RadioButton();
+            }
+            else if ( vm.stateRow === StateRowTableComponent.checkBox ) {
+                this.buttonsFooter2CheckBox();
+            }
 
         } ) );
 
@@ -378,6 +471,17 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
     }
 
 
+    readItems( e: Event )
+    {
+        this.store.getRead().subscribe();
+        this.onReadItems.emit({
+            event: e,
+            sender: this,
+            data: this.thirdStore.getState()
+        });
+    }
+
+
     addItem( e: Event )
     {
         this.onAddItem.emit({
@@ -386,16 +490,6 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
             data: this.store.getState()
         });
     }
-
-
-    readData( e: Event )
-    {
-        this.store.read()
-        .subscribe({
-            error: error => this.modalService.open( MessageBoxComponent ).subscribe( c => c.mensaje = error )
-        });
-    }
-
 
     openFilter( e: Event )
     {
@@ -473,9 +567,9 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
         if ( this.stateColumn === StateColumnTableComponent.normal ) {
             
 
-            this.data = Enumerable.from( this.store.getState() )
-                                .orderBy( item => bind.getValue( item ) )
-                                .toArray();
+            // this.data = Enumerable.from( this.store.getState() )
+            //                     .orderBy( item => bind.getValue( item ) )
+            //                     .toArray();
             
             this.selectedColumnIndex = i;
             this.stateColumn = StateColumnTableComponent.ascending;
@@ -483,9 +577,9 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
         }
         else if ( this.stateColumn === StateColumnTableComponent.ascending ) {
 
-            this.data = Enumerable.from( this.store.getState() )
-                                    .orderByDescending( item => bind.getValue( item ) )
-                                    .toArray();
+            // this.data = Enumerable.from( this.store.getState() )
+            //                         .orderByDescending( item => bind.getValue( item ) )
+            //                         .toArray();
 
             this.selectedColumnIndex = i;
             this.stateColumn = StateColumnTableComponent.descending;
@@ -506,6 +600,9 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
     {
         this.onDestroy.emit( this );
         this.sub.unsubscribe();
+        this.store.complete();
+        this.secondStore.complete();
+        this.thirdStore.complete();
         document.removeEventListener( 'click', this.onClickDocument );
         console.log( 'TableComponent', this.instanceId, 'destruido' );
     }
@@ -521,6 +618,18 @@ export type TableComponentItemEventData<T extends ItemType> = {
     event: Event,
     sender: TableComponent<T>,
     item: T
+}
+
+export type TableComponentResetItemEventData<T extends ItemType> = {
+    event: Event,
+    sender: TableComponent<T>,
+    item: undefined
+}
+
+export type TableComponentResetEventData<T extends ItemType> = {
+    event: Event,
+    sender: TableComponent<T>,
+    data: []
 }
 
 // export type TableComponentOnFilterEventData<T extends ItemType> = {
@@ -569,13 +678,4 @@ export interface TableComponentVm<T extends ItemType>
     isCloseButtonActive: boolean,
     stateRow: StateRowTableComponent,
     bindingProperties: BindingPropertyTableComponent<T>[]
-}
-
-export interface TableComponentVmInput<T extends ItemType>
-{
-    vm$: BehaviorSubject<TableComponentVm<T>>,
-    inputSearchComponentVm$: BehaviorSubject<InputSearchComponentVm<T>>,
-    buttonsMenuComponentVm$: BehaviorSubject<ButtonsMenuComponentVm>,
-    buttonsFooterComponentVm$: BehaviorSubject<ButtonsFooterComponentVm>,
-    onInit?: ( c: TableComponent<T> ) => void
 }

@@ -1,4 +1,4 @@
-import { ApplicationRef, Component, ComponentRef, ElementRef, EnvironmentInjector, HostListener, Injectable, Injector, Input, Type, ViewChild, ViewContainerRef, createComponent, inject } from '@angular/core';
+import { ApplicationRef, ChangeDetectorRef, Component, ComponentRef, ElementRef, EnvironmentInjector, HostListener, Injectable, Injector, Input, Type, ViewChild, ViewContainerRef, createComponent, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { IComponent } from '../interfaces/IComponent';
 
@@ -38,11 +38,13 @@ export class ModalService {
                     ref: cr
                 });
         
-                const s = cr.instance.onInit.subscribe( () => {
-                    o.next( cr.instance );
-                    o.complete();
-                    s.unsubscribe();
-                } );
+                cr.instance.sub.add( cr.instance.onInit.subscribe({
+                    next: () => {
+                        o.next( cr.instance );
+                        o.complete();
+                    },
+                    error: ( error: any ) => o.error( error )
+                }) );
                     
                 this.updateVisibility();
             
@@ -54,7 +56,7 @@ export class ModalService {
     }
 
 
-    close( instance: any ): void
+    close( instance: IComponent<any> ): void
     {
         const i = this.components.map( c => c.ref.instance ).indexOf( instance );
         if ( i !== -1 ) {
@@ -126,13 +128,13 @@ class ModalWrapper
     @ViewChild( 'vcr', {read: ViewContainerRef} ) vcr?:ViewContainerRef;
     private modalService = inject( ModalService );
     private el = inject( ElementRef )
+    private cd = inject( ChangeDetectorRef );
 
 
     ngAfterViewInit()
     {
-        setTimeout( () => {
-            if ( this.cr ) this.vcr?.insert( this.cr.hostView );
-        }, 0 );
+        if ( this.cr ) this.vcr?.insert( this.cr.hostView );
+        this.cd.detectChanges();
     }
 
     @HostListener( 'click', [ '$event' ] )

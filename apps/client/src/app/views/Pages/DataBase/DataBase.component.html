@@ -1,0 +1,90 @@
+<div class="tw-flex tw-flex-col tw-gap-4">
+
+    <div class="tw-flex tw-flex-col">
+
+        <h4>Personas</h4>
+
+        <div class="tw-flex tw-flex-wrap tw-gap-4">
+            @for (table of tablesPersona; track $index) {
+
+                <div class="tw-min-h-20 tw-min-w-32 tw-bg-blue-900 tw-text-white tw-p-2 tw-text-left tw-cursor-pointer tw-transform tw-ease-in-out tw-duration-[0.1s]
+                    hover:tw-scale-[1.1]"
+                    [ngClass]="{
+                        '!tw-bg-blue-500': table.principal
+                    }"
+                    (click)="table.onClick( this )">
+                    {{ table.title }}
+                </div>
+
+            }
+        </div>
+
+    </div>
+
+
+    <div class="tw-flex tw-flex-col">
+
+        <h4>Pantallas</h4>
+
+        <div class="tw-flex tw-flex-wrap tw-gap-4">
+            @for (table of tablesPantalla; track $index) {
+
+                <div class="tw-min-h-20 tw-min-w-32 tw-bg-blue-900 tw-text-white tw-p-2 tw-text-left tw-cursor-pointer tw-transform tw-ease-in-out tw-duration-[0.1s]
+                    hover:tw-scale-[1.1]"
+                    [ngClass]="{
+                        '!tw-bg-blue-500': table.principal
+                    }"
+                    (click)="table.onClick( this )">
+                    {{ table.title }}
+                </div>
+
+            }
+        </div>
+
+    </div>
+
+
+    <div class="tw-flex tw-flex-col">
+
+        <h4>Productos</h4>
+
+        <div class="tw-flex tw-flex-wrap tw-gap-4">
+            @for (table of tablesBien; track $index) {
+
+                <div class="tw-min-h-20 tw-min-w-32 tw-bg-blue-900 tw-text-white tw-p-2 tw-text-left tw-cursor-pointer tw-transform tw-ease-in-out tw-duration-[0.1s]
+                    hover:tw-scale-[1.1]"
+                    [ngClass]="{
+                        '!tw-bg-blue-500': table.principal
+                    }"
+                    (click)="table.onClick( this )">
+                    {{ table.title }}
+                </div>
+
+            }
+        </div>
+
+    </div>
+
+
+    <div class="tw-flex tw-flex-col">
+
+        <h4>Servicios</h4>
+
+        <div class="tw-flex tw-flex-wrap tw-gap-4">
+            @for (table of tablesServicio; track $index) {
+
+                <div class="tw-min-h-20 tw-min-w-32 tw-bg-blue-900 tw-text-white tw-p-2 tw-text-left tw-cursor-pointer tw-transform tw-ease-in-out tw-duration-[0.1s]
+                    hover:tw-scale-[1.1]"
+                    [ngClass]="{
+                        '!tw-bg-blue-500': table.principal
+                    }"
+                    (click)="table.onClick( this )">
+                    {{ table.title }}
+                </div>
+
+            }
+        </div>
+
+    </div>
+
+</div>
