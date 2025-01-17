@@ -1376,4 +1376,3 @@ create table prueba2(
 
 insert into prueba2 values
 ( 2, null );
-describe prueba2;
