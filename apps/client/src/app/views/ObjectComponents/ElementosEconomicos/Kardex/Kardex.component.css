@@ -1,0 +1,70 @@
+:host {
+    max-height: 100%;
+    max-width: 100%;
+
+    display: flex;
+    flex-direction: column;
+    @apply tw-p-4 tw-shadow-md tw-rounded tw-gap-4;
+}
+
+
+table {
+
+    & thead {
+
+        & th {
+            @apply tw-bg-blue-950 tw-py-2 tw-px-4 tw-text-white tw-font-bold 
+            tw-border-r-[1px] tw-border-gray-200
+        }
+
+        & th.th-internal {
+            @apply tw-border-t-[1px] tw-border-gray-200 tw-text-center;
+        }
+    }
+
+    & tbody {
+
+        & tr {
+
+            & td {
+                @apply tw-bg-white tw-border-r-[1px]
+                last:tw-border-r-0 tw-border-gray-200;
+
+                .x-value {
+                    @apply tw-h-full tw-w-full tw-py-1 tw-px-2 tw-text-left
+                }
+
+                .x-value-number {
+                    @apply tw-h-full tw-w-full tw-py-1 tw-px-2 tw-text-right
+                }
+            }
+
+        }
+
+        & tr:nth-child(even) {
+
+            & td {
+                @apply tw-bg-gray-100;
+            }
+
+        }
+
+        & tr.tr-click {
+
+            & td {
+                @apply !tw-bg-gray-500 tw-text-white;
+            }
+            
+        }
+
+        & tr:last-child {
+
+            & td {
+                @apply tw-bg-blue-950 tw-text-white;
+            }
+
+        }
+
+    }
+
+}

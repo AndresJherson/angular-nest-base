@@ -1,11 +1,9 @@
-import { DocumentoIdentificacion } from "../DocumentoIdentificacion";
-import { Genero } from "../Genero";
-import { Model, Prop, PropBehavior } from "../../Model"
-import { Usuario } from "../Usuario/Usuario";
+import { Model, DocumentoIdentificacion, Genero, Prop, PropBehavior, Usuario } from "../../../index";
 
 @Prop.Class()
 export class Empleado extends Model
 {
+    static override type = 'Empleado';
     @Prop.Set( PropBehavior.model, () => DocumentoIdentificacion ) documentoIdentificacion?: DocumentoIdentificacion;
     @Prop.Set() codigo?: string;
     @Prop.Set() nombre?: string;

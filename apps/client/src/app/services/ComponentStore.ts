@@ -1,6 +1,6 @@
 import { BehaviorSubject, catchError, EMPTY, map, Observable, Subject, tap, throwError } from "rxjs";
 
-export class ComponentStore<T extends Object>
+export class ComponentStore<T>
 {
     private storeData$: BehaviorSubject<T>;
     public readonly state$: Observable<T>;
@@ -9,23 +9,26 @@ export class ComponentStore<T extends Object>
     public readonly error$ = this.storeError$.asObservable();
 
     private read$: Observable<T>;
+    private createRead: () => Observable<T>;
 
 
     constructor( initialState: T, read$: Observable<T> | ( () => T ) )
     {
         this.storeData$ = new BehaviorSubject( initialState );
         this.state$ = this.storeData$.asObservable();
-        this.read$ = read$ instanceof Observable
-                    ? read$
-                    : new Observable( o => {
-                        try {
-                            o.next( read$() );
-                            o.complete();
-                        }
-                        catch ( error ) {
-                            o.error( error );
-                        }
-                    } )
+        this.createRead = read$ instanceof Observable
+                            ? () => read$
+                            : () => new Observable<T>( o => {
+                                try {
+                                    o.next( read$() );
+                                    o.complete();
+                                }
+                                catch ( error ) {
+                                    o.error( error );
+                                }
+                            } );
+
+        this.read$ = this.createRead();
     }
 
 
@@ -41,7 +44,8 @@ export class ComponentStore<T extends Object>
             tap( state => this.storeData$.next( state ) ),
             catchError( error => {
                 this.storeError$.next( error );
-                return error;
+                this.read$ = this.createRead();
+                return throwError( () => error );
             } ),
             map( () => void 0 )
         );
@@ -50,17 +54,19 @@ export class ComponentStore<T extends Object>
 
     public setRead( read$: Observable<T> | ( () => T ) ): ComponentStore<T>
     {
-        this.read$ = read$ instanceof Observable
-                    ? read$
-                    : new Observable( o => {
-                        try {
-                            o.next( read$() );
-                            o.complete();
-                        }
-                        catch ( error ) {
-                            o.error( error );
-                        }
-                    } )
+        this.createRead = read$ instanceof Observable
+                            ? () => read$
+                            : () => new Observable<T>( o => {
+                                try {
+                                    o.next( read$() );
+                                    o.complete();
+                                }
+                                catch ( error ) {
+                                    o.error( error );
+                                }
+                            } );
+
+        this.read$ = this.createRead();
 
         return this;
     }

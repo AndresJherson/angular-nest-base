@@ -1,10 +1,11 @@
-import { Prop, PropBehavior } from '../../Model';
-import { Credito } from '../Credito';
-import { Cuota } from '../Cuota';
-import { NotaVentaCredito } from './NotaVentaCredito';
+import { Cuota, NotaVentaCredito, Prop, PropBehavior } from '../../../index';
 
+@Prop.Class()
 export class NotaVentaCuota extends Cuota
 {
+    static override type = 'NotaVentaCuota';
+    @Prop.Set() override type: string = NotaVentaCuota.type;
+
     @Prop.Set( PropBehavior.model, () => NotaVentaCredito ) declare credito?: NotaVentaCredito;
     
 

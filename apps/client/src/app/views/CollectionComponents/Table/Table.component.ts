@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, inject, Input, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostBinding, inject, Input, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IComponent } from '../../../interfaces/IComponent';
 import { ComponentStore } from '../../../services/ComponentStore';
@@ -9,7 +9,7 @@ import { ButtonsMenuComponentVm, ButtonsMenuComponent } from '../../Components/B
 import { ButtonsFooterComponentVm, ButtonsFooterComponent } from '../../Components/ButtonsFooter/ButtonsFooter.component';
 import { ModalService } from '../../../services/modal.service';
 import { PropBehavior } from '../../../../../../models/src/lib/Model';
-// import Enumerable from 'linq';
+import Enumerable from 'linq';
 import { MessageBoxComponent } from '../../Components/MessageBox/MessageBox.component';
 import { BUTTON_CLASS_BOOTSTRAP } from '../../../utils/ButtonsClass';
 import { FormsModule } from '@angular/forms';
@@ -31,7 +31,7 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
     static instanceId = 0;
     instanceId = 0;
     @Input() id: number = 0;
-    @Input() store = new ComponentStore<T[]>( [], of([]) );
+    @Input() store = new ComponentStore<T[]>( [], () => [] );
     secondStore = this.store.storeFromThis<T[]>( state => state );
     thirdStore = this.secondStore.storeFromThis<T[]>( state => state );
     data: T[] = [];
@@ -45,10 +45,14 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
     @Input() vm$ = new BehaviorSubject<TableComponentVm<T>>({
         title: '',
         isHeadActive: true,
+        classesCss: '',
         isCloseButtonActive: true,
+        isReadButtonActive: true,
         stateRow: StateRowTableComponent.select,
         bindingProperties: [],
     });
+
+    @HostBinding( 'class' ) hostClasses: string = '';
 
     @Input() inputSearchComponentVm$ = new BehaviorSubject<InputSearchComponentVm<T>>({
         value2search: '',
@@ -284,12 +288,11 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
                     class: BUTTON_CLASS_BOOTSTRAP.primary,
                     onClick: e => {
                         const data = this.getDataChecked();
-                        if ( data.length > 0 )
-                            this.onSelectItems.emit({
-                                event: e,
-                                sender: this,
-                                data
-                            });
+                        this.onSelectItems.emit({
+                            event: e,
+                            sender: this,
+                            data
+                        });
 
                         this.close( e );
                     }
@@ -315,18 +318,19 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
     @Output() readonly onClose = new EventEmitter<TableComponentEventData<T>>();
 
     @Output() readonly onSelectItem = new EventEmitter<TableComponentItemEventData<T>>();
-    @Output() readonly onSelectItems = new EventEmitter<TableComponentEventData<T>>();
     @Output() readonly onResetItem = new EventEmitter<TableComponentResetItemEventData<T>>();
+    @Output() readonly onAddItem = new EventEmitter<TableComponentEventData<T>>();
+    @Output() readonly onSearchItem = new EventEmitter<TableComponentEventData<T>>();
+    
+    @Output() readonly onSelectItems = new EventEmitter<TableComponentEventData<T>>();
     @Output() readonly onResetItems = new EventEmitter<TableComponentResetEventData<T>>();
     @Output() readonly onUpdateItems = new EventEmitter<TableComponentEventData<T>>();
     @Output() readonly onDeleteItems = new EventEmitter<TableComponentEventData<T>>();
-    @Output() readonly onAddItem = new EventEmitter<TableComponentEventData<T>>();
     @Output() readonly onReadItems = new EventEmitter<TableComponentEventData<T>>();
 
     @Output() readonly onImport = new EventEmitter<TableComponentEventData<T>>();
     @Output() readonly onExport = new EventEmitter<TableComponentEventData<T>>();
 
-    // @Output() readonly onFilter = new EventEmitter<TableComponentOnFilterEventData<T>>();
     // @Output() readonly onReset = new EventEmitter<TableComponent_CollectionFilterComponentEventData<T>>();
 
 
@@ -344,22 +348,30 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
         this.secondStore = this.store.storeFromThis<T[]>( state => state );
         this.thirdStore = this.secondStore.storeFromThis<T[]>( state => state );
 
-        this.sub.add( this.thirdStore.state$.subscribe( data => this.data = data ) );
+        this.sub.add( this.thirdStore.state$.subscribe( data => {
+            this.data = data
+        } ) );
 
-        this.sub.add( this.thirdStore.error$.subscribe( error => this.modalService.open( MessageBoxComponent ).subscribe( c => c.mensaje = error ) ) );
+        this.sub.add( this.store.error$.subscribe( error => this.modalService.open( MessageBoxComponent ).subscribe( c => c.mensaje = error ) ) );
 
         this.sub.add( this.vm$.subscribe( vm => {
+
+            this.hostClasses = vm.classesCss ?? '';
 
             this.inputSearchComponentVm$.next({
                 ...this.inputSearchComponentVm$.value,
                 bindingProperties: vm.bindingProperties
             });
 
-            if ( vm.stateRow === StateRowTableComponent.radioButton ) {
-                this.buttonsFooter2RadioButton();
-            }
-            else if ( vm.stateRow === StateRowTableComponent.checkBox ) {
-                this.buttonsFooter2CheckBox();
+            if ( !vm.isStateRowCustom ) {
+
+                if ( vm.stateRow === StateRowTableComponent.radioButton ) {
+                    this.buttonsFooter2RadioButton();
+                }
+                else if ( vm.stateRow === StateRowTableComponent.checkBox ) {
+                    this.buttonsFooter2CheckBox();
+                }
+
             }
 
         } ) );
@@ -395,7 +407,6 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
                                 
             if ( itemSelected ) itemSelected.isChecked = true;
             
-            console.log( itemSelected, 'data:', this.store.getState())
         } )
     }
 
@@ -414,6 +425,11 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
     searchItem( e: InputSearchComponentEventData<T> )
     {
         this.thirdStore.setState( e.data );
+        this.onSearchItem.emit({
+            event: e.event,
+            sender: this,
+            data: e.data
+        });
     }
 
 
@@ -566,10 +582,9 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
 
         if ( this.stateColumn === StateColumnTableComponent.normal ) {
             
-
-            // this.data = Enumerable.from( this.store.getState() )
-            //                     .orderBy( item => bind.getValue( item ) )
-            //                     .toArray();
+            this.data = Enumerable.from( this.data )
+                                .orderBy( item => bind.getValue( item ) )
+                                .toArray();
             
             this.selectedColumnIndex = i;
             this.stateColumn = StateColumnTableComponent.ascending;
@@ -577,9 +592,9 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
         }
         else if ( this.stateColumn === StateColumnTableComponent.ascending ) {
 
-            // this.data = Enumerable.from( this.store.getState() )
-            //                         .orderByDescending( item => bind.getValue( item ) )
-            //                         .toArray();
+            this.data = Enumerable.from( this.data )
+                                    .orderByDescending( item => bind.getValue( item ) )
+                                    .toArray();
 
             this.selectedColumnIndex = i;
             this.stateColumn = StateColumnTableComponent.descending;
@@ -587,7 +602,7 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
         }
         else if ( this.stateColumn === StateColumnTableComponent.descending ) {
             
-            this.data = this.store.getState();
+            this.data = this.thirdStore.getState();
 
             this.selectedColumnIndex = i;
             this.stateColumn = StateColumnTableComponent.normal;
@@ -599,12 +614,12 @@ export class TableComponent<T extends ItemRefTableComponent> implements ICompone
     ngOnDestroy()
     {
         this.onDestroy.emit( this );
-        this.sub.unsubscribe();
         this.store.complete();
         this.secondStore.complete();
         this.thirdStore.complete();
         document.removeEventListener( 'click', this.onClickDocument );
         console.log( 'TableComponent', this.instanceId, 'destruido' );
+        this.sub.unsubscribe();
     }
 }
 
@@ -674,8 +689,11 @@ export type ItemRefTableComponent = ItemType &
 export interface TableComponentVm<T extends ItemType>
 {
     title: string,
-    isHeadActive: boolean,
-    isCloseButtonActive: boolean,
+    classesCss?: string,
+    isHeadActive?: boolean,
+    isCloseButtonActive?: boolean,
+    isReadButtonActive?: boolean,
     stateRow: StateRowTableComponent,
+    isStateRowCustom?: boolean,
     bindingProperties: BindingPropertyTableComponent<T>[]
 }

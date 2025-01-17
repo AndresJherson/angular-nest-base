@@ -1,1 +1,104 @@
-<p>CollectionElementoEconomico works!</p>
+<div class="tw-flex tw-justify-between tw-items-center">
+
+    <div class="tw-flex tw-gap-2">
+        <i class="bi bi-arrow-bar-left btn btn-light !tw-text-base tw-shadow-sm" 
+            (click)="close( $event )"></i>
+    
+        <h4>Elementos</h4>
+    </div>
+
+
+</div>
+
+
+<div class="tw-flex tw-flex-col tw-gap-4 tw-min-h-full">
+
+    <app-input-search [vm$]="inputSearchComponentVm$"
+        (onSearch)="search( $event )"/>
+
+    <app-tab>
+
+        <app-tab-item [title]="'Productos ( ' + productoData.length + ' ) '"
+            [active]="true">
+
+            <div class="tw-flex tw-flex-col tw-gap-4 tw-p-4
+                lg:tw-grid lg:tw-grid-cols-3
+                tw-overflow-auto">
+
+                @for (item of productoData; track $index) {
+
+                    <div class="tw-min-h-4 tw-min-w-4 tw-h-max
+                        tw-flex tw-flex-col tw-gap-2 tw-p-2 
+                        tw-rounded tw-shadow tw-cursor-pointer
+                        tw-transform tw-ease-in-out tw-duration-[.1s] hover:tw-scale-105"
+                        (click)="selectItem( $event, item )">
+
+                        <span class="tw-text-sm">{{ item.codigo }}</span>
+                        <span class="tw-font-semibold">{{ item.nombre }}</span>
+                        <span class="tw-text-sm tw-text-gray-500">{{ item.uuid }}</span>
+
+                    </div>
+
+                }
+
+            </div>
+
+        </app-tab-item>
+
+
+        <app-tab-item [title]="'Pantallas ( ' + pantallaModeloCalidadData.length + ' ) '">
+
+            <div class="tw-flex tw-flex-col tw-gap-4 tw-p-4
+                lg:tw-grid lg:tw-grid-cols-3
+                tw-overflow-auto">
+
+                @for (item of pantallaModeloCalidadData; track $index) {
+
+                    <div class="tw-min-h-4 tw-min-w-4 tw-h-max
+                        tw-flex tw-flex-col tw-gap-2 tw-p-2 
+                        tw-rounded tw-shadow tw-cursor-pointer
+                        tw-transform tw-ease-in-out tw-duration-[.1s] hover:tw-scale-105"
+                        (click)="selectItem( $event, item )">
+
+                        <span class="tw-text-sm">{{ item.codigo }}</span>
+                        <span class="tw-font-semibold">{{ item.nombre }}</span>
+                        <span class="tw-text-sm tw-text-gray-500">{{ item.uuid }}</span>
+
+                    </div>
+
+                }
+
+            </div>
+
+        </app-tab-item>
+
+
+        <app-tab-item [title]="'Servicios ( ' + servicioData.length + ' ) '">
+
+            <div class="tw-flex tw-flex-col tw-gap-4 tw-p-4
+                lg:tw-grid lg:tw-grid-cols-3
+                tw-overflow-auto">
+
+                @for (item of servicioData; track $index) {
+
+                    <div class="tw-min-h-4 tw-min-w-4 tw-h-max
+                        tw-flex tw-flex-col tw-gap-2 tw-p-2 
+                        tw-rounded tw-shadow tw-cursor-pointer
+                        tw-transform tw-ease-in-out tw-duration-[.1s] hover:tw-scale-105"
+                        (click)="selectItem( $event, item )">
+
+                        <span class="tw-text-sm">{{ item.codigo }}</span>
+                        <span class="tw-font-semibold">{{ item.nombre }}</span>
+                        <span class="tw-text-sm tw-text-gray-500">{{ item.uuid }}</span>
+
+                    </div>
+
+                }
+
+            </div>
+
+        </app-tab-item>
+
+    </app-tab>
+
+</div>

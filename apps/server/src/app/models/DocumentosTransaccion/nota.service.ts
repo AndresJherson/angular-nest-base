@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SessionData } from '../../interfaces/interfaces';
 import { ConectorService } from '../../services/conector.service';
-import { Nota } from 'apps/models/src/lib/DocumentosTransaccion/Nota';
+import { Nota } from '@app/models';
 import { ERROR_CRUD } from '../../interfaces/constants';
 import { SQLBuilder } from '../../services/SQLBuilder';
 import { AppService } from '../../app.service';
@@ -16,7 +16,17 @@ export class NotaService {
             'documentoTransaccion', null,
             'fechaCreacion', nota.f_creacion,
             'descripcion', nota.descripcion,
-            'usuario', null
+            'usuario', (
+                select json_object(
+                    'id', usuario.id,
+                    'nombre', usuario.nombre,
+                    'usuario', usuario.usuario,
+                    'contrasena', usuario.contrasena,
+                    'esActivo', usuario.es_activo
+                ) as usuario
+                from usuario
+                where usuario.id = nota.usuario_id
+            )
         ) as data
         from nota
     `;
@@ -36,7 +46,7 @@ export class NotaService {
     }
 
 
-    async executeNotaCollection( s: SessionData, notas: Nota[] )
+    async executeCreateCollection( s: SessionData, notas: Nota[] )
     {
         return await this.conectorService.executeNonQuery({
             transaction: s.transaction,
@@ -47,7 +57,7 @@ export class NotaService {
                     documento_transaccion_id: nota.documentoTransaccion?.id ?? null,
                     f_creacion: nota.fechaCreacion ?? null,
                     descripcion: nota.descripcion ?? null,
-                    usuario_id: nota.usuario?.id ?? 0
+                    usuario_id: s.usuario.id ?? null,
                 }
             ) ) )
         });
@@ -95,7 +105,7 @@ export class NotaService {
                     documento_transaccion_id: nota.documentoTransaccion?.id ?? null,
                     f_creacion: nota.fechaCreacion ?? null,
                     descripcion: nota.descripcion ?? null,
-                    usuario_id: nota.usuario?.id ?? 0
+                    usuario_id: s.usuario.id ?? null,
                 }
             ])
         });

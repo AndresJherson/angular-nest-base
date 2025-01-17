@@ -1,11 +1,12 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConectorService } from '../../../../services/conector.service';
 import { SessionData } from '../../../../interfaces/interfaces';
-import { Producto } from '../../../../../../../models/src/lib/ElementosEconomicos/Bien/Producto/Producto';
+import { Producto } from '@app/models';
 import { ERROR_CRUD } from '../../../../interfaces/constants';
 import { v4 } from 'uuid';
 import { SQLBuilder } from 'apps/server/src/app/services/SQLBuilder';
 import { AppService } from 'apps/server/src/app/app.service';
+import { KardexService } from '../Inventario/kardex.service';
 
 @Injectable()
 export class ProductoService {
@@ -15,7 +16,29 @@ export class ProductoService {
             'id', producto.id,
             'uuid', elemento_economico.uuid,
             'codigo', elemento_economico.codigo,
-            'nombre', bien.nombre,
+            'nombre', (
+                select
+                    concat(
+                        bien.nombre, ' ',
+                        bien_marca.nombre, ' ',
+                        magnitud.nombre
+                    )
+                from bien_marca
+                left join magnitud on magnitud.id = bien.magnitud_id
+                where bien_marca.id = bien.bien_marca_id
+            ), 
+            'magnitudNombre', (
+                select 
+                    magnitud.nombre
+                from magnitud
+                where magnitud.id = bien.magnitud_id
+            ),
+            'categoriaNombre', (
+                select 
+                    bien_categoria.nombre
+                from bien_categoria
+                where bien_categoria.id = bien.bien_categoria_id
+            ),
             'magnitud', (
                 select json_object(
                     'id', magnitud.id,
@@ -59,7 +82,8 @@ export class ProductoService {
 
     constructor(
         private conectorService: ConectorService,
-        private appService: AppService
+        private appService: AppService,
+        private kardexService: KardexService
     )
     {
         this.appService.register({
@@ -68,7 +92,8 @@ export class ProductoService {
                 getItem: s => this.getItem( s, new Producto( s.json.producto ) ),
                 createItem: s => this.createItem( s, new Producto( s.json.producto ) ),
                 updateItem: s => this.updateItem( s, new Producto( s.json.producto ) ),
-                deleteItem: s => this.deleteItem( s, new Producto( s.json.producto ) )
+                deleteItem: s => this.deleteItem( s, new Producto( s.json.producto ) ),
+                kardexMetodoPromedio: s => this.kardexMetodoPromedio( s, new Producto( s.json.producto ) )
             }
         });
     }
@@ -241,5 +266,12 @@ export class ProductoService {
             affectedRows2 === 0 &&
             affectedRows3 === 0 
         ) throw new InternalServerErrorException( ERROR_CRUD.DELETE );
+    }
+
+
+    async kardexMetodoPromedio( s: SessionData, producto: Producto )
+    {
+        const producto2send = await this.getItem( s, producto );
+        return await this.kardexService.metodoPromedio( s, producto2send )
     }
 }

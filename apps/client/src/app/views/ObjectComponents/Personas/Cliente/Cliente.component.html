@@ -22,7 +22,6 @@
                 (onInit)="objectComponentOnInit( $event )"/>
         }
     
-    
     </app-tab-item>
     
     
@@ -31,14 +30,10 @@
     
         @if ( tabTransaccion.active ) {
             <app-table class="!tw-min-h-full !tw-shadow-none !tw-p-0 !tw-pt-4"
-                (onInit)="tableComponentOnInit( $event )"/>
+                (onInit)="tableComponentOnInit( $event )"
+                (onSelectItem)="openDocumentoTransaccionComponent( $event.sender.store, $event.item )"/>
         }
     
-    </app-tab-item>
-
-
-    <app-tab-item title="vacio">
-
     </app-tab-item>
 
 </app-tab>

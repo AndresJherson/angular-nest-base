@@ -1,14 +1,13 @@
-import { DateTime } from "luxon";
-import { DocumentoTransaccion } from "../DocumentosTransaccion/DocumentoTransaccion";
-import { Model, Prop, PropBehavior } from "../Model";
-import { Usuario } from "../Personas/Usuario/Usuario";
+import { DocumentoTransaccion, Model, Prop, PropBehavior, Usuario } from "../../index";
 
 @Prop.Class()
 export class DocumentoMovimiento extends Model
 {
+    static override type = 'DocumentoMovimiento';
+    @Prop.Set() type = DocumentoMovimiento.type;
+
     @Prop.Set() uuid?: string;
     @Prop.Set() codigo?: string;
-    @Prop.Set( PropBehavior.datetime ) fechaEjecucion?: string;
     @Prop.Set( PropBehavior.datetime ) fechaEmision?: string;
     @Prop.Set( PropBehavior.datetime ) fechaAnulacion?: string;
 
@@ -16,8 +15,6 @@ export class DocumentoMovimiento extends Model
     @Prop.Set() concepto?: string;
     @Prop.Set() importeNeto: number = 0;
     @Prop.Set( PropBehavior.model, () => DocumentoTransaccion ) documentoTransaccion?: DocumentoTransaccion;
-
-    @Prop.Set() type = DocumentoMovimiento.name;
 
 
     constructor( json?: Partial<DocumentoMovimiento> )
@@ -43,7 +40,7 @@ export class DocumentoMovimiento extends Model
     }
 
 
-    calcularInformacionMovimiento(): this
+    procesarInformacionMovimiento(): this
     {
         return this;
     }

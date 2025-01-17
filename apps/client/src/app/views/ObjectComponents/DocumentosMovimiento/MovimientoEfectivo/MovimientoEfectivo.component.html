@@ -1,0 +1,163 @@
+@if ( vm$ | async; as vm ) {
+
+    <div class="tw-flex tw-justify-between tw-gap-4">
+    
+        <div class="tw-flex tw-items-center tw-gap-2">
+    
+            <i class="bi bi-arrow-bar-left btn btn-light !tw-text-base !tw-shadow" 
+                (click)="close( $event )"></i>
+    
+            <h4>{{ vm.title }}</h4>
+    
+        </div>
+
+
+        <app-buttons-menu [vm$]="buttonsMenuComponentVm$"/>
+    
+    </div>
+    
+    
+    <div class="tw-flex tw-justify-center tw-overflow-auto">
+    
+        <div class="tw-flex tw-flex-col tw-gap-4 tw-w-full
+            lg:tw-grid lg:tw-grid-cols-2">
+    
+            @if ( 
+                vm.stateComponent === StateComponentMovimientoEfectivoComponent.readMemory || 
+                vm.stateComponent === StateComponentMovimientoEfectivoComponent.readServer || 
+                vm.stateComponent === StateComponentMovimientoEfectivoComponent.none 
+            ) {
+
+                <!-- IDENTIFICACION -->
+                <div>
+                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Codigo</label>
+                    <div>{{ movimientoEfectivo.codigo ?? '-' }}</div>
+                </div>
+
+                <div class="lg:tw-col-span-2">
+                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Concepto</label>
+                    <div>{{ movimientoEfectivo.concepto ?? '-' }}</div>
+                </div>
+
+                <div>
+                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Fecha Emisión</label>
+                    <div>{{ Prop.toDateTime( movimientoEfectivo.fechaEmision ).isValid ? Prop.toDateTime( movimientoEfectivo.fechaEmision).toFormat( 'dd/MM/yyyy HH:mm' ) : '-' }}</div>
+                </div>
+
+                <div>
+                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Fecha Anulación</label>
+                    <div>{{ Prop.toDateTime( movimientoEfectivo.fechaAnulacion ).isValid ? Prop.toDateTime( movimientoEfectivo.fechaAnulacion ).toFormat( 'dd/MM/yyyy HH:mm' ) : '-' }}</div>
+                </div>
+
+                <div>
+                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Usuario Emisor</label>
+                    <div>{{ movimientoEfectivo.usuario?.nombre ?? '-' }}</div>
+                </div>
+
+                
+                
+                <!-- DETALLES -->
+                <div>
+                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Importe</label>
+                    <div>{{ Prop.toDecimal( movimientoEfectivo.importeNeto ).toFixed( 2 ) }}</div>
+                </div>
+
+                <div>
+                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Medio de Transferencia</label>
+                    <div>{{ movimientoEfectivo.medioTransferencia?.nombre ?? '-' }}</div>
+                </div>
+
+                @if ( vm.isAttached ) {
+                    <div class="lg:tw-col-span-2">
+                        <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Documento de Transaccion</label>
+                        <div>{{ 
+                            movimientoEfectivo.documentoTransaccion?.codigoSerie !== undefined && 
+                            movimientoEfectivo.documentoTransaccion?.codigoSerie !== null &&
+                            movimientoEfectivo.documentoTransaccion?.codigoNumero !== undefined && 
+                            movimientoEfectivo.documentoTransaccion?.codigoNumero !== null
+                                ? ( movimientoEfectivo.documentoTransaccion?.codigoSerie + '-' + movimientoEfectivo.documentoTransaccion?.codigoNumero )
+                                : '-'
+                        }}</div>
+                    </div>
+                }
+
+            }
+            @else {
+                
+                <div class="lg:tw-col-span-2">
+                    <label class="form-label !tw-m-0 !tw-text-base !tw-font-bold">Concepto</label>
+                    <input type="text" 
+                        class="form-control !tw-text-base"
+                        [(ngModel)]="movimientoEfectivo.concepto">
+                </div>
+
+                <div>
+                    <label class="form-lable !tw-m-0 !tw-text-base !tw-font-bold">Fecha de Emisión</label>
+                    <input type="datetime-local"
+                        class="form-control !tw-text-base"
+                        [(ngModel)]="movimientoEfectivo.fechaEmision">
+                </div>
+
+                <div>
+                    <label class="form-lable !tw-m-0 !tw-text-base !tw-font-bold">Fecha de Anulación</label>
+                    <input type="datetime-local"
+                        class="form-control !tw-text-base"
+                        [(ngModel)]="movimientoEfectivo.fechaAnulacion">
+                </div>
+
+                <div>
+                    <div class="tw-flex tw-gap-1">
+                        <label class="form-label !tw-m-0 !tw-text-base !tw-font-bold">Importe</label>
+                        <i class="bi bi-asterisk tw-text-[6px] tw-text-red-500"></i>
+                    </div>
+                    <input type="number" 
+                        class="form-control !tw-text-base"
+                        [(ngModel)]="movimientoEfectivo.importeNeto"
+                        required>
+                </div>
+            
+                <div>
+                    <div class="tw-flex tw-gap-1">
+                        <label class="form-label !tw-m-0 !tw-text-base !tw-font-bold">Medio de Transferencia</label>
+                        <i class="bi bi-asterisk tw-text-[6px] tw-text-red-500"></i>
+                    </div>
+                    <input type="text" 
+                        class="form-control !tw-text-base !tw-cursor-pointer"
+                        [ngModel]="movimientoEfectivo.medioTransferencia?.nombre"
+                        (click)="selectMedioTransferencia( $event )"
+                        (keydown.enter)="selectMedioTransferencia( $event )"
+                        required
+                        readonly>
+                </div>
+
+                @if ( vm.isAttached ) {
+
+                    <div class="lg:tw-col-span-2">
+                        <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Documento Transacción Asociado</label>
+                        <input type="text"
+                            class="form-control !tw-text-base !tw-cursor-pointer"
+                            (click)="selectDocumentoTransaccion( $event )"
+                            (keydown.enter)="selectDocumentoTransaccion( $event )"
+                            [ngModel]="
+                                movimientoEfectivo.documentoTransaccion?.codigoSerie !== undefined && 
+                                movimientoEfectivo.documentoTransaccion?.codigoSerie !== null &&
+                                movimientoEfectivo.documentoTransaccion?.codigoNumero !== undefined && 
+                                movimientoEfectivo.documentoTransaccion?.codigoNumero !== null
+                                    ? movimientoEfectivo.documentoTransaccion?.codigoSerie + '-' + movimientoEfectivo.documentoTransaccion?.codigoNumero
+                                    : ''
+                            "
+                            readonly>
+                    </div>
+                    
+                }
+
+            }
+    
+        </div>
+    
+    </div>
+    
+    
+    <app-buttons-footer [vm$]="buttonsFooterComponentVm$"/>
+
+}

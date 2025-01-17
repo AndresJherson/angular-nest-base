@@ -148,8 +148,8 @@ export class BienMarcaService {
                 c.store = store;
 
                 c.vm$.next({
+                    ...c.vm$.value,
                     title: 'Marca de Bien',
-                    isCloseActive: true,
                     state: StateObjectComponent.read,
                     bindingProperties: [
                         { title: 'Id', getValue: item => item.id, behavior: PropBehavior.number },

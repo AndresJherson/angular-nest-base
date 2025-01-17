@@ -1,11 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConectorService } from '../../../services/conector.service';
 import { SessionData } from '../../../interfaces/interfaces';
-import { CreditoCobrar } from '../../../../../../models/src/lib/DocumentosTransaccion/CreditoCobrar/CreditoCobrar';
-import { NotaVentaCredito } from 'apps/models/src/lib/DocumentosTransaccion/NotaVenta/NotaVentaCredito';
+import { CreditoCobrar } from '@app/models';
 import { SQLBuilder } from '../../../services/SQLBuilder';
-import { CuotaCobrar } from 'apps/models/src/lib/DocumentosTransaccion/CreditoCobrar/CuotaCobrar';
-import { NotaVentaCuota } from '../../../../../../models/src/lib/DocumentosTransaccion/NotaVenta/NotaVentaCuota';
 
 @Injectable()
 export class CreditoCobrarService {

@@ -2,5 +2,8 @@
     height: max-content;
     max-height: 200vh;
     width: 100%;
-    @apply tw-flex tw-flex-col tw-gap-4;
+    
+    display: flex;
+    flex-direction: column;
+    @apply tw-gap-4;
 }

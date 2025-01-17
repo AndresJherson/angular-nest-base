@@ -1,15 +1,15 @@
 import Decimal from "decimal.js";
-import { Prop, PropBehavior } from "../Model";
-import { DocumentoIdentificacion } from "../Personas/DocumentoIdentificacion";
+import { Cliente, Cuota, DocumentoIdentificacion, DocumentoTransaccion, Prop, PropBehavior } from '../../index';
 import { Proporcion, TipoProporcion } from "../utils/Proporcion";
-import { Cuota } from "./Cuota";
-import { DocumentoTransaccion } from "./DocumentoTransaccion";
-import { DateTime, Interval } from "luxon";
+import { Interval } from "luxon";
 import { ErrorModel } from "../utils/ErrorModel";
-import { Cliente } from "../Personas/Cliente/Cliente";
 
+@Prop.Class()
 export class Credito extends DocumentoTransaccion
 {
+    static override type = 'Credito';
+    @Prop.Set() override type: string = Credito.type;
+
     @Prop.Set( PropBehavior.model, () => Cliente ) cliente?: Cliente;
     @Prop.Set( PropBehavior.model, () => DocumentoIdentificacion ) receptorDocumentoIdentificacion?: DocumentoIdentificacion;
     @Prop.Set() receptorCodigo?: string;
@@ -25,10 +25,10 @@ export class Credito extends DocumentoTransaccion
     @Prop.Set( PropBehavior.array, () => Cuota ) cuotas: Cuota[] = [];
 
     @Prop.Set() duracionMinutos: number = 0;
-    @Prop.Set() interesXminuto = new Proporcion( TipoProporcion.directa, 0, 0 );
-    @Prop.Set() amortizacionXminuto = new Proporcion( TipoProporcion.directa, 0, 0 );
-    @Prop.Set() cuotaXminuto = new Proporcion( TipoProporcion.directa, 0, 0 );
-
+    interesXminuto = new Proporcion( TipoProporcion.directa, 0, 0 );
+    amortizacionXminuto = new Proporcion( TipoProporcion.directa, 0, 0 );
+    cuotaXminuto = new Proporcion( TipoProporcion.directa, 0, 0 );
+    
 
     constructor( json?: Partial<Credito> )
     {
@@ -45,7 +45,7 @@ export class Credito extends DocumentoTransaccion
 
         this.cuotas.push( cuota );
 
-        this.calcularInformacionTransaccion();
+        this.procesarInformacionTransaccion();
         
         return this;
     }
@@ -65,7 +65,7 @@ export class Credito extends DocumentoTransaccion
 
         if ( i !== -1 ) {
             this.cuotas[ i ] = cuota;
-            this.calcularInformacionTransaccion();
+            this.procesarInformacionTransaccion();
         }
 
 
@@ -82,7 +82,7 @@ export class Credito extends DocumentoTransaccion
             : ( c.id !== cuota.id )
         );
 
-        this.calcularInformacionTransaccion();
+        this.procesarInformacionTransaccion();
 
         return this;
     }
@@ -140,9 +140,11 @@ export class Credito extends DocumentoTransaccion
     }
 
 
-    override calcularInformacionTransaccion(): this
+    override procesarInformacionTransaccion(): this
     {   
         try {
+
+            super.procesarInformacionTransaccion();
 
             this.duracionMinutos = this.cuotas.reduce(
     
@@ -231,6 +233,7 @@ export class Credito extends DocumentoTransaccion
 
         }
         catch ( error ) {
+            console.log( error );
             throw new ErrorModel( 'Error al calcular el credito', error );
         }
 
@@ -239,52 +242,42 @@ export class Credito extends DocumentoTransaccion
     }
 
 
-    override calcularInformacionEfectivo(): this 
+    override procesarInformacionMovimiento(): this 
     {
         try {
 
-            super.calcularInformacionEfectivo();
+            super.procesarInformacionMovimiento();
             
-            let importeCobrado = this.importeCobrado;
+            let saldoCobrado = this.importeCobrado;
 
             this.cuotas.forEach( cuota => {
 
-                if ( cuota.importeCuota === undefined ) {
-
-                    cuota.importeCobrado = 0;
-                    cuota.importePorCobrar = 0;
-                    cuota.porcentajeCobrado = 0;
-                    cuota.porcentajePorCobrar = 0;
-                    return;
-                    
-                }
-
-                const decimalImporteCobrado = new Decimal( importeCobrado );
-                importeCobrado = decimalImporteCobrado
+                const decimalSaldoCobrado = new Decimal( saldoCobrado );
+                saldoCobrado = decimalSaldoCobrado
                                 .minus( cuota.importeCuota )
                                 .toNumber();
 
-                if ( importeCobrado > 0 ) {
+                if ( saldoCobrado > 0 ) {
                     
                     cuota.importeCobrado = cuota.importeCuota;
                     cuota.importePorCobrar = 0;
                     cuota.porcentajeCobrado = 100.00;
-                    cuota.porcentajePorCobrar = 0;
+                    cuota.porcentajePorCobrar = 0.00;
 
                 }
                 else {
 
-                    cuota.importeCobrado = decimalImporteCobrado
+                    cuota.importeCobrado = decimalSaldoCobrado
                                             .toDecimalPlaces( 2 )
                                             .toNumber();
 
                     cuota.importePorCobrar = new Decimal( cuota.importeCuota )
-                                            .minus( decimalImporteCobrado )
+                                            .minus( decimalSaldoCobrado )
                                             .toDecimalPlaces( 2 )
                                             .toNumber();
 
                     try {
-                        cuota.porcentajeCobrado = decimalImporteCobrado
+                        cuota.porcentajeCobrado = decimalSaldoCobrado
                                                     .div( cuota.importeCuota )
                                                     .mul( 100 )
                                                     .toDecimalPlaces( 2 )

@@ -14,7 +14,8 @@ with movimiento_efectivo as (
     select
         entrada_efectivo.id as id,
         entrada_efectivo.efectivo as efectivo,
-        entrada_efectivo.medio_transferencia_id as medioTransferenciaId
+        entrada_efectivo.medio_transferencia_id as medioTransferenciaId,
+        'EntradaEfectivo' as type
     from entrada_efectivo
 
     union all
@@ -22,7 +23,8 @@ with movimiento_efectivo as (
     select
         salida_efectivo.id as id,
         salida_efectivo.efectivo as efectivo,
-        salida_efectivo.medio_transferencia_id as medioTransferenciaId
+        salida_efectivo.medio_transferencia_id as medioTransferenciaId,
+        'SalidaEfectivo' as type
     from salida_efectivo
 )
 select json_object(
@@ -33,9 +35,10 @@ select json_object(
     'fechaAnulacion', documento_movimiento.f_anulacion,
     'usuario', null,
     'concepto', documento_movimiento.concepto,
-    'efectivo', movimiento_efectivo.efectivo,
+    'importeNeto', movimiento_efectivo.efectivo,
     'medioTransferencia', null,
-    'documentoTransaccion', null
+    'documentoTransaccion', null,
+    'type', movimiento_efectivo.type
 ) as data
 from movimiento_efectivo
 left join documento_movimiento on documento_movimiento.id = movimiento_efectivo.id
@@ -52,7 +55,7 @@ select json_object(
     'fechaAnulacion', documento_movimiento.f_anulacion,
     'usuario', null,
     'concepto', documento_movimiento.concepto,
-    'efectivo', entrada_efectivo.efectivo,
+    'importeNeto', entrada_efectivo.efectivo,
     'medioTransferencia', null,
     'documentoTransaccion', null
 ) as data
@@ -70,7 +73,7 @@ select json_object(
     'fechaAnulacion', documento_movimiento.f_anulacion,
     'usuario', null,
     'concepto', documento_movimiento.concepto,
-    'efectivo', salida_efectivo.efectivo,
+    'importeNeto', salida_efectivo.efectivo,
     'medioTransferencia', null,
     'documentoTransaccion', null
 ) as data
@@ -90,7 +93,8 @@ with movimiento_pantalla as (
         documento_movimiento.f_anulacion as fechaAnulacion,
         documento_movimiento.usuario_id as usuarioId,
         documento_movimiento.concepto as concepto,
-        documento_movimiento.documento_transaccion_id as documentoTransaccionId
+        documento_movimiento.documento_transaccion_id as documentoTransaccionId,
+        'EntradaPantalla' as type
     from entrada_pantalla
     left join documento_movimiento on documento_movimiento.id = entrada_pantalla.id
 
@@ -104,7 +108,8 @@ with movimiento_pantalla as (
         documento_movimiento.f_anulacion as fechaAnulacion,
         documento_movimiento.usuario_id as usuarioId,
         documento_movimiento.concepto as concepto,
-        documento_movimiento.documento_transaccion_id as documentoTransaccionId
+        documento_movimiento.documento_transaccion_id as documentoTransaccionId,
+        'SalidaPantalla' as type
     from salida_pantalla
     left join documento_movimiento on documento_movimiento.id = salida_pantalla.id
 
@@ -116,7 +121,8 @@ movimiento_pantalla_detalle as (
         entrada_pantalla_detalle.entrada_pantalla_id as movimientoPantallaId,
         entrada_pantalla_detalle.pantalla_modelo_calidad_id as pantallaModeloCalidadId,
         entrada_pantalla_detalle.cant as cantidad,
-        entrada_pantalla_detalle.costo_uni as importeUnitario
+        entrada_pantalla_detalle.costo_uni as importeUnitario,
+        'EntradaPantallaDetalle' as type
     from entrada_pantalla_detalle
 
     union all
@@ -126,7 +132,8 @@ movimiento_pantalla_detalle as (
         salida_pantalla_detalle.salida_pantalla_id as movimientoPantallaId,
         salida_pantalla_detalle.pantalla_modelo_calidad_id as pantallaModeloCalidadId,
         salida_pantalla_detalle.cant as cantidad,
-        salida_pantalla_detalle.precio_uni as importeUnitario
+        salida_pantalla_detalle.precio_uni as importeUnitario,
+        'SalidaPantallaDetalle' as type
     from salida_pantalla_detalle
 
 )
@@ -144,11 +151,13 @@ select json_object(
             'id', movimiento_pantalla_detalle.id,
             'pantallaModeloCalidad', null,
             'cantidad', movimiento_pantalla_detalle.cantidad,
-            'importeUnitario', movimiento_pantalla_detalle.importeUnitario
+            'importeUnitario', movimiento_pantalla_detalle.importeUnitario,
+            'type', movimiento_pantalla_detalle.type
         ) )
         from movimiento_pantalla_detalle
         where movimiento_pantalla_detalle.movimientoPantallaId = movimiento_pantalla.id
-    )
+    ),
+    'type', movimiento_pantalla.type
 ) as data
 from movimiento_pantalla;
 
@@ -219,7 +228,8 @@ with movimiento_producto as (
         documento_movimiento.f_anulacion as fechaAnulacion,
         documento_movimiento.usuario_id as usuarioId,
         documento_movimiento.concepto as concepto,
-        documento_movimiento.documento_transaccion_id as documentoTransaccionId
+        documento_movimiento.documento_transaccion_id as documentoTransaccionId,
+        'EntradaProducto' as type
     from entrada_producto
     left join documento_movimiento on documento_movimiento.id = entrada_producto.id
 
@@ -233,7 +243,8 @@ with movimiento_producto as (
         documento_movimiento.f_anulacion as fechaAnulacion,
         documento_movimiento.usuario_id as usuarioId,
         documento_movimiento.concepto as concepto,
-        documento_movimiento.documento_transaccion_id as documentoTransaccionId
+        documento_movimiento.documento_transaccion_id as documentoTransaccionId,
+        'SalidaProducto' as type
     from salida_producto
     left join documento_movimiento on documento_movimiento.id = salida_producto.id
 
@@ -245,7 +256,8 @@ movimiento_producto_detalle as (
         entrada_producto_detalle.entrada_producto_id as movimientoProductoId,
         entrada_producto_detalle.producto_id as productoId,
         entrada_producto_detalle.cant as cantidad,
-        entrada_producto_detalle.costo_uni as importeUnitario
+        entrada_producto_detalle.costo_uni as importeUnitario,
+        'EntradaProductoDetalle' as type
     from entrada_producto_detalle
 
     union all
@@ -255,7 +267,8 @@ movimiento_producto_detalle as (
         salida_producto_detalle.salida_producto_id as movimientoProductoId,
         salida_producto_detalle.producto_id as productoId,
         salida_producto_detalle.cant as cantidad,
-        salida_producto_detalle.precio_uni as importeUnitario
+        salida_producto_detalle.precio_uni as importeUnitario,
+        'SalidaProductoDetalle' as type
     from salida_producto_detalle
 
 )
@@ -273,11 +286,13 @@ select json_object(
             'id', movimiento_producto_detalle.id,
             'producto', null,
             'cantidad', movimiento_producto_detalle.cantidad,
-            'importeUnitario', movimiento_producto_detalle.importeUnitario
+            'importeUnitario', movimiento_producto_detalle.importeUnitario,
+            'type', movimiento_producto_detalle.type
         ) )
         from movimiento_producto_detalle
         where movimiento_producto_detalle.movimientoProductoId = movimiento_producto.id
-    )
+    ),
+    'type', movimiento_producto.type
 ) as data
 from movimiento_producto;
 
@@ -342,21 +357,24 @@ with cte_documento_movimiento as (
 
     select
         entrada_efectivo.id as id,
-        entrada_efectivo.efectivo as importeNeto
+        entrada_efectivo.efectivo as importeNeto,
+        'EntradaEfectivo' as type
     from entrada_efectivo
 
     union all
 
     select
         salida_efectivo.id as id,
-        salida_efectivo.efectivo as importeNeto
+        salida_efectivo.efectivo as importeNeto,
+        'SalidaEfectivo' as type
     from salida_efectivo
 
     union all
 
     select
         entrada_pantalla.id as id,
-        sum( entrada_pantalla_detalle.cant * entrada_pantalla_detalle.costo_uni ) as importeNeto
+        sum( entrada_pantalla_detalle.cant * entrada_pantalla_detalle.costo_uni ) as importeNeto,
+        'EntradaPantalla' as type
     from entrada_pantalla
     left join entrada_pantalla_detalle on entrada_pantalla_detalle.entrada_pantalla_id = entrada_pantalla.id
     group by entrada_pantalla.id
@@ -365,7 +383,8 @@ with cte_documento_movimiento as (
 
     select
         salida_pantalla.id as id,
-        sum( salida_pantalla_detalle.cant * salida_pantalla_detalle.precio_uni ) as importeNeto
+        sum( salida_pantalla_detalle.cant * salida_pantalla_detalle.precio_uni ) as importeNeto,
+        'SalidaPantalla' as type
     from salida_pantalla
     left join salida_pantalla_detalle on salida_pantalla_detalle.salida_pantalla_id = salida_pantalla.id
     group by salida_pantalla.id
@@ -374,7 +393,8 @@ with cte_documento_movimiento as (
 
     select
         entrada_producto.id as id,
-        sum( entrada_producto_detalle.cant * entrada_producto_detalle.costo_uni ) as importeNeto
+        sum( entrada_producto_detalle.cant * entrada_producto_detalle.costo_uni ) as importeNeto,
+        'EntradaProducto' as type
     from entrada_producto
     left join entrada_producto_detalle on entrada_producto_detalle.entrada_producto_id = entrada_producto.id
     group by entrada_producto.id
@@ -383,7 +403,8 @@ with cte_documento_movimiento as (
 
     select
         salida_producto.id as id,
-        sum( salida_producto_detalle.cant * salida_producto_detalle.precio_uni ) as importeNeto
+        sum( salida_producto_detalle.cant * salida_producto_detalle.precio_uni ) as importeNeto,
+        'SalidaProducto' as type
     from salida_producto
     left join salida_producto_detalle on salida_producto_detalle.salida_producto_id = salida_producto.id
     group by salida_producto.id
@@ -398,7 +419,77 @@ select json_object(
     'usuario', null,
     'concepto', documento_movimiento.concepto,
     'importeNeto', cte_documento_movimiento.importeNeto,
-    'documentoTransaccion', null
+    'documentoTransaccion', null,
+    'type', cte_documento_movimiento.type
 ) as data
 from documento_movimiento
 left join cte_documento_movimiento on cte_documento_movimiento.id = documento_movimiento.id;
+
+
+
+
+------- PRUEBAS
+
+-- MOVIMIENTO EFECTIVO
+
+with movimiento_efectivo as (
+    select
+        entrada_efectivo.id as id,
+        entrada_efectivo.efectivo as efectivo,
+        entrada_efectivo.medio_transferencia_id as medioTransferenciaId,
+        'EntradaEfectivo' as type
+    from entrada_efectivo
+
+    union all
+
+    select
+        salida_efectivo.id as id,
+        salida_efectivo.efectivo as efectivo,
+        salida_efectivo.medio_transferencia_id as medioTransferenciaId,
+        'SalidaEfectivo' as type
+    from salida_efectivo
+)
+select json_object(
+    'id', documento_movimiento.id,
+    'uuid', documento_movimiento.uuid,
+    'codigo', documento_movimiento.codigo,
+    'fechaEmision', documento_movimiento.f_emision,
+    'fechaAnulacion', documento_movimiento.f_anulacion,
+    'usuario', (
+        select json_object(
+            'id', usuario.id,
+            'nombre', usuario.nombre,
+            'usuario', usuario.usuario,
+            'contrasena', usuario.contrasena,
+            'esActivo', usuario.es_activo
+        ) as usuario
+        from usuario
+        where usuario.id = documento_movimiento.usuario_id
+    ),
+    'concepto', documento_movimiento.concepto,
+    'importeNeto', movimiento_efectivo.efectivo,
+    'medioTransferencia',(
+        select json_object(
+            'id', medio_transferencia.id,
+            'nombre', medio_transferencia.nombre
+        )
+        from medio_transferencia
+        where medio_transferencia.id = movimiento_efectivo.medioTransferenciaId
+    ),
+    'documentoTransaccion', (
+        select json_object(
+            'id', documento_transaccion.id,
+            'uuid', documento_transaccion.id,
+            'codigoSerie', documento_transaccion.cod_serie,
+            'codigoNumero', documento_transaccion.cod_numero
+        ) as data
+        from documento_transaccion
+        where documento_transaccion.id = documento_movimiento.documento_transaccion_id
+    ),
+    'type', movimiento_efectivo.type
+) as data
+from movimiento_efectivo
+left join documento_movimiento on documento_movimiento.id = movimiento_efectivo.id
+left join medio_transferencia on medio_transferencia.id = movimiento_efectivo.medioTransferenciaId;
+
+

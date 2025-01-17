@@ -1,16 +1,19 @@
 :host {
     max-height: 100%;
     max-width: 100%;
+
     display: flex;
     flex-direction: column;
+    align-items: center;
     background-color: white;
     
-    @apply tw-p-4 tw-rounded tw-shadow-md tw-gap-4;
+    @apply tw-gap-4 tw-p-4 tw-rounded tw-shadow-md;
 }
 
 table {
     & th {
-        @apply tw-bg-blue-950 tw-py-2 tw-px-4 tw-text-white tw-font-bold tw-border-r-[1px] tw-border-gray-200 tw-cursor-pointer 
+        @apply tw-bg-blue-950 tw-py-2 tw-px-4 tw-text-white tw-font-bold tw-cursor-pointer 
+        tw-border-r-[1px] tw-border-gray-200 
         first:tw-rounded-tl 
         last:tw-border-r-0 last:tw-rounded-tr;
     }
@@ -20,7 +23,8 @@ table {
         & tr {
 
             & td {
-                @apply tw-bg-white tw-border-r-[1px] last:tw-border-r-0 tw-border-gray-200;
+                @apply tw-bg-white tw-border-r-[1px] 
+                last:tw-border-r-0 tw-border-gray-200;
 
                 .x-value {
                     @apply tw-h-full tw-w-full tw-py-1 tw-px-2 tw-text-left;
@@ -39,7 +43,7 @@ table {
         & tr.tr-click {
 
             & td {
-                @apply tw-bg-gray-400 tw-text-white;
+                @apply tw-bg-gray-600 tw-text-white;
             }
         }
     }

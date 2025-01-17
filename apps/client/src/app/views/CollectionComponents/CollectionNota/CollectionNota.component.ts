@@ -59,6 +59,7 @@ export class CollectionNotaComponent implements IComponent<CollectionNotaCompone
 
         this.sub.add( this.storeNotas.state$.subscribe({
             next: notas => {
+
                 this.notas = notas.map( nota => {
 
                     const interval = Prop.toInterval( Prop.toDateTime( nota.fechaCreacion ), Prop.toDateTimeNow() );

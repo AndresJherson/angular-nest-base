@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { Calidad } from 'apps/models/src/lib/ElementosEconomicos/Bien/Pantalla/Calidad';
+import { Calidad } from '@app/models';
 import { AppService } from 'apps/server/src/app/app.service';
 import { ERROR_CRUD } from 'apps/server/src/app/interfaces/constants';
 import { SessionData } from 'apps/server/src/app/interfaces/interfaces';

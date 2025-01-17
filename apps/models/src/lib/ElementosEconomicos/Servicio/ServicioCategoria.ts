@@ -1,7 +1,8 @@
-import { Model, Prop } from "../../Model";
+import { Model, Prop } from "../../../index";
 
 export class ServicioCategoria extends Model
 {
+    static override type = 'ServicioCategoria';
     @Prop.Set() nombre?: string;
     
 

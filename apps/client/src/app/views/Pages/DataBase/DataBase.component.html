@@ -87,4 +87,48 @@
 
     </div>
 
+
+    <div class="tw-flex tw-flex-col">
+
+        <h4>Documentos de Transacción</h4>
+
+        <div class="tw-flex tw-flex-wrap tw-gap-4">
+            @for (table of tablesDocumentosTransaccion; track $index) {
+
+                <div class="tw-min-h-20 tw-min-w-32 tw-bg-blue-900 tw-text-white tw-p-2 tw-text-left tw-cursor-pointer tw-transform tw-ease-in-out tw-duration-[0.1s]
+                    hover:tw-scale-[1.1]"
+                    [ngClass]="{
+                        '!tw-bg-blue-500': table.principal
+                    }"
+                    (click)="table.onClick( this )">
+                    {{ table.title }}
+                </div>
+
+            }
+        </div>
+
+    </div>
+
+
+    <div class="tw-flex tw-flex-col">
+
+        <h4>Documentos de Movimiento</h4>
+
+        <div class="tw-flex tw-flex-wrap tw-gap-4">
+            @for (table of tablesDocumentosMovimiento; track $index) {
+
+                <div class="tw-min-h-20 tw-min-w-32 tw-bg-blue-900 tw-text-white tw-p-2 tw-text-left tw-cursor-pointer tw-transform tw-ease-in-out tw-duration-[0.1s]
+                    hover:tw-scale-[1.1]"
+                    [ngClass]="{
+                        '!tw-bg-blue-500': table.principal
+                    }"
+                    (click)="table.onClick( this )">
+                    {{ table.title }}
+                </div>
+
+            }
+        </div>
+
+    </div>
+
 </div>

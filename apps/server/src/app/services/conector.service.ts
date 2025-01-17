@@ -1,6 +1,8 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import {QueryTypes, Sequelize, Transaction} from 'sequelize';
-import { Prop } from '../../../../models/src/lib/Model';
+import { Model, Prop } from '@app/models';
+import { spawn } from 'child_process';
+import { createReadStream, createWriteStream } from 'fs';
 
 @Injectable()
 export class ConectorService {
@@ -51,24 +53,35 @@ export class ConectorService {
     {
         try {
 
-            const data = await this.sequelize.query( parameter.query, {
+            const data: any[] = await this.sequelize.query( parameter.query, {
                 replacements: parameter.parameters,
                 transaction: parameter.transaction,
                 type: QueryTypes.SELECT,
             } );
 
-            if ( parameter.target ) {
-                const propertyName = Object.keys( data[ 0 ] ?? {} )[ 0 ];
-                let newData: T[] = [];
+            if ( parameter.target === undefined ) return data;
+
+
+            const columnName = Object.keys( data[ 0 ] ?? {} )[ 0 ];
+            let newData: T[] = [];
+
+            if ( parameter.target?.prototype ) {
 
                 for ( const item of data ) {
-                    newData.push( new parameter.target( ( item as any )[ propertyName ] ) );
+                    newData.push( new ( parameter.target as new(...args:any[])=>T )( item[ columnName ] ) );
                 }
 
-                return newData;
             }
+            else {
+                
+                const arrayJson = data.map( item => item[ columnName ] );
+                
+                newData = ( parameter.target as (...args:any[])=>T[] )( arrayJson );
+            }
+            console.log( newData );
+            return newData;
+            
 
-            return data as T[];
         }
         catch ( error: any ) {
             console.log( error );
@@ -93,12 +106,42 @@ export class ConectorService {
             throw new InternalServerErrorException( 'Error en la escritura de datos.' );
         }
     }
+
+
+    runPythonScript<T>( scriptPath: string, data: Record<any,any> ): Promise<T>
+    {
+        return new Promise<T>( ( resolve, reject ) => {
+            const pythonProcess = spawn( 'python', [ scriptPath ] );
+        
+            let output = '';
+            let error = '';
+        
+            pythonProcess.stdout.on( 'data', data => {
+                output += data.toString();
+            });
+        
+            pythonProcess.stderr.on( 'data', data => {
+                error += data.toString();
+            });
+        
+            pythonProcess.on( 'close', code => {
+                if ( code === 0 ) {
+                    resolve( JSON.parse( output ) );
+                } else {
+                    reject( new Error( error ) );
+                }
+            });
+
+            pythonProcess.stdin.write( JSON.stringify( data ) );
+            pythonProcess.stdin.end();
+        });
+    };
 }
 
 
 export interface ParameterExecuteQuery<T>
 {
-    target?: new ( json?: any ) => T,
+    target?: ( new ( ...args: any[] ) => T ) | ( ( ...args: any[] ) => T[] ),
     transaction: Transaction,
     query: string,
     parameters?: Record<string,any>,

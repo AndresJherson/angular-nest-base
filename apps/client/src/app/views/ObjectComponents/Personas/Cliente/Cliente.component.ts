@@ -1,4 +1,4 @@
-import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
+import { Component, EventEmitter, HostBinding, inject, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IComponent } from 'apps/client/src/app/interfaces/IComponent';
 import { BehaviorSubject, Subscription } from 'rxjs';
@@ -13,6 +13,11 @@ import { ModalService } from 'apps/client/src/app/services/modal.service';
 import { DocumentoIdentificacionService } from 'apps/client/src/app/models/Personas/documento-identificacion.service';
 import { GeneroService } from 'apps/client/src/app/models/Personas/genero.service';
 import { MessageBoxComponent } from '../../../Components/MessageBox/MessageBox.component';
+import { DocumentoTransaccionService } from 'apps/client/src/app/models/DocumentosTransaccion/documento-transaccion.service';
+import { NotaVentaService } from 'apps/client/src/app/models/DocumentosTransaccion/NotaVenta/nota-venta.service';
+import { DocumentoTransaccion, NotaVenta } from '@app/models';
+import { OverlayService } from 'apps/client/src/app/services/overlay.service';
+import { NotaVentaComponent } from '../../DocumentosTransaccion/NotaVenta/NotaVenta.component';
 
 @Component({
   selector: 'app-cliente',
@@ -25,6 +30,14 @@ export class ClienteComponent implements IComponent<ClienteComponent> {
     @Input() storeCliente = new ComponentStore<Cliente>( new Cliente(), () => new Cliente() );
     cliente = new Cliente();
 
+    @Input() vm$ = new BehaviorSubject<ClienteComponentVm>({
+        classesCss: ''
+    })
+    
+    @Input() overlayService = new OverlayService();
+
+    @HostBinding( 'class' ) hostClasses: string = '';
+
     @Output() readonly onInit = new EventEmitter<ClienteComponent>();
     @Output() readonly onDestroy = new EventEmitter<ClienteComponent>();
     @Output() readonly onClose = new EventEmitter<ClienteComponentEventData>();
@@ -33,6 +46,8 @@ export class ClienteComponent implements IComponent<ClienteComponent> {
     clienteService = inject( ClienteService );
     documentoIdentificacionService = inject( DocumentoIdentificacionService );
     generoService = inject( GeneroService );
+    documentoTransaccionService = inject( DocumentoTransaccionService );
+    notaVentaService = inject( NotaVentaService );
     modalService = inject( ModalService );
 
     ngOnInit(): void 
@@ -46,27 +61,34 @@ export class ClienteComponent implements IComponent<ClienteComponent> {
         } ) );
 
         this.sub.add( this.storeCliente.error$.subscribe( error => this.modalService.open( MessageBoxComponent ).subscribe( c => c.mensaje = error ) ) );
+
+        this.sub.add( this.vm$.subscribe( vm => {
+            this.hostClasses = vm.classesCss ?? '';
+        } ) );
     }
 
     
     close( e: Event )
     {
-        this.modalService.close( this );
         this.onClose.emit({
             event: e,
             sender: this,
             cliente: this.cliente
         });
+        this.modalService.close( this );
     }
 
 
+    // Cliente
     objectComponentOnInit( c: ObjectComponent<Cliente> )
     {
         c.store = this.storeCliente.storeFromThisAsync( this.cliente, this.clienteService.getItem( this.cliente ) );
 
         c.vm$.next({
             title: '',
-            isCloseActive: false,
+            classesCss: '',
+            isCloseButtonActive: false,
+            isReadButtonActive: true,
             state: StateObjectComponent.read,
             bindingProperties: [
                 { title: 'Documento Id', getValue: item => item.documentoIdentificacion?.nombre, setValue: ( item, value ) => item.set({ documentoIdentificacion: value }), required: true, behavior: PropBehavior.model, onClick: item => {
@@ -154,20 +176,34 @@ export class ClienteComponent implements IComponent<ClienteComponent> {
     }
 
 
-    tableComponentOnInit( c: TableComponent<Cliente> )
+    // Documentos Transacción Relacionado
+    tableComponentOnInit( c: TableComponent<DocumentoTransaccion> )
     {
-        // get collection about relation with client
-        c.store.setRead( this.clienteService.getCollection() )
+        c.store.setRead( this.documentoTransaccionService.getCollectionPorCliente( this.cliente ) )
                 .getRead()
                 .subscribe();
 
         c.vm$.next({
-            title: 'clientes',
+            title: 'Transaccion relacionadas',
             isHeadActive: true,
             isCloseButtonActive: false,
             stateRow: StateRowTableComponent.select,
-            bindingProperties: this.clienteService.tableBindingProperties
+            bindingProperties: this.documentoTransaccionService.tableComponentBindingProperties
         });
+    }
+
+
+    openDocumentoTransaccionComponent( parentStore: ComponentStore<DocumentoTransaccion[]>, documentoTransaccion: DocumentoTransaccion )
+    {
+        if ( documentoTransaccion instanceof NotaVenta ) {
+
+            this.notaVentaService.openNotaVentaComponent( 
+                parentStore, 
+                parentStore.storeFromThisAsync( new NotaVenta( documentoTransaccion ), this.notaVentaService.getItem( new NotaVenta( documentoTransaccion ) ) ),
+                this.overlayService
+            ).subscribe()
+
+        }
     }
 
 
@@ -185,4 +221,10 @@ export interface ClienteComponentEventData
     event: Event,
     sender: ClienteComponent,
     cliente: Cliente
+}
+
+
+export interface ClienteComponentVm
+{
+    classesCss?: string,
 }

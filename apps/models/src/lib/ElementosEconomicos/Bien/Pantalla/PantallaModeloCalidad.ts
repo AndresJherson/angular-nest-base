@@ -1,15 +1,15 @@
-import { Calidad } from "./Calidad";
-import { Model, Prop, PropBehavior } from "../../../Model";
-import { PantallaModelo } from "./PantallaModelo";
-import { ElementoEconomico } from "../../ElementoEconomico";
+import { Calidad, ElementoEconomico, PantallaModelo, Prop, PropBehavior } from "../../../../index";
 
 @Prop.Class()
 export class PantallaModeloCalidad extends ElementoEconomico
 {
+    static override type = 'PantallaModeloCalidad';
+    @Prop.Set() override type: string = PantallaModeloCalidad.type;
+
     @Prop.Set( PropBehavior.model, () => PantallaModelo ) pantallaModelo?: PantallaModelo;
     @Prop.Set( PropBehavior.model, () => Calidad ) calidad?: Calidad;
     @Prop.Set() override esSalida: boolean = true;
-    @Prop.Set() override type: string = PantallaModeloCalidad.name;
+    
 
 
     constructor( json?: Partial<PantallaModeloCalidad> )

@@ -4,16 +4,16 @@
 
         <div class="tw-flex tw-items-center tw-gap-2">
 
-            @if ( vm.isCloseActive ) {
+            @if ( vm.isCloseButtonActive ) {
                 <i class="bi bi-arrow-bar-left btn btn-light !tw-text-base !tw-shadow" (click)="close( $event )"></i>
             }
 
-            <h4>{{ getTitle( vm.title ) }}</h4>
+            <h4>{{ vm.title }}</h4>
             
         </div>
 
         <div class="tw-flex tw-gap-2">
-            @if( vm.state === StateObjectComponent.read ) {
+            @if( vm.state === StateObjectComponent.read && vm.isReadButtonActive ) {
                 <i class="bi bi-arrow-repeat tw-flex tw-items-center tw-p-2 tw-text-base tw-text-white tw-bg-blue-950 tw-cursor-pointer tw-rounded tw-shadow-sm"
                     (click)="read( $event )"></i>
             }
@@ -48,7 +48,7 @@
 
                             <input type="text"
                                 class="form-control !tw-text-xl"
-                                [ngModel]="bind.getValue ? bind.getValue( item ) : ''"
+                                [ngModel]="bind.getValue( item, true ) ?? ''"
                                 (ngModelChange)="bind.setValue( item, $event )">
 
                         }
@@ -56,7 +56,7 @@
 
                             <textarea class="form-control !tw-text-xl"
                                 placeholder="..."
-                                [ngModel]="bind.getValue ? bind.getValue( item ) : ''"
+                                [ngModel]="bind.getValue( item, true ) ?? ''"
                                 (ngModelChange)="bind.setValue( item, $event )"></textarea>
 
                         }
@@ -64,7 +64,7 @@
 
                             <input type="number"
                                 class="form-control !tw-text-xl"
-                                [ngModel]="bind.getValue ? bind.getValue( item ) : ''"
+                                [ngModel]="bind.getValue( item, true ) ?? ''"
                                 (ngModelChange)="bind.setValue( item, $event )">
 
                         }
@@ -74,7 +74,7 @@
                                 <input type="checkbox" 
                                     class="form-check-input !tw-cursor-pointer !tw-h-5 !tw-w-10"
                                     role="switch"
-                                    [checked]="bind.getValue ? bind.getValue( item, true ) : false"
+                                    [checked]="bind.getValue( item, true ) ?? false"
                                     (change)="bind.setValue( item, inputSwitch.checked )"
                                     #inputSwitch>
                             </div>
@@ -84,7 +84,7 @@
 
                             <input type="date"
                                 class="form-control !tw-text-xl"
-                                [ngModel]="bind.getValue ? bind.getValue( item ) : ''"
+                                [ngModel]="bind.getValue( item, true ) ?? ''"
                                 (ngModelChange)="bind.setValue( item, $event )">
 
                         }
@@ -92,7 +92,7 @@
 
                             <input type="datetime-local"
                                 class="form-control !tw-text-xl"
-                                [ngModel]="bind.getValue ? bind.getValue( item ) : ''"
+                                [ngModel]="bind.getValue( item, true ) ?? ''"
                                 (ngModelChange)="bind.setValue( item, $event )">
 
                         }
@@ -100,7 +100,7 @@
 
                             <input type="time"
                                 class="form-control !tw-text-xl"
-                                [ngModel]="bind.getValue ? bind.getValue( item ) : ''"
+                                [ngModel]="bind.getValue( item, true ) ?? ''"
                                 (ngModelChange)="bind.setValue( item, $event )">
 
                         }
@@ -108,8 +108,9 @@
 
                             <input type="text"
                                 class="form-control tw-cursor-pointer"
-                                [ngModel]="bind.getValue ? bind.getValue( item ) : ''"
+                                [ngModel]="bind.getValue( item, true ) ?? ''"
                                 (click)="bind.onClick && !bind.readonly ? bind.onClick( item ) : undefined"
+                                (keydown.enter)="bind.onClick && !bind.readonly ? bind.onClick( item ) : undefined"
                                 readonly>
 
                         }
@@ -117,7 +118,7 @@
 
                             <input type="text"
                                 class="form-control-plaintext !tw-text-xl"
-                                [ngModel]="bind.getValue ? bind.getValue( item ) : ''"
+                                [ngModel]="bind.getValue( item, true ) ?? ''"
                                 readonly>
 
                         }
@@ -127,8 +128,8 @@
     
             }
             @else if ( 
-                bind.getValue &&
-                ( ( vm.state === StateObjectComponent.read || vm.state === StateObjectComponent.none ) || bind.readonly  )
+                ( vm.state === StateObjectComponent.read || vm.state === StateObjectComponent.none ) || 
+                bind.readonly
             ) {
     
                 <div>

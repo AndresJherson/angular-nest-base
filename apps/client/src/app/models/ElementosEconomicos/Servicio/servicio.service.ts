@@ -77,7 +77,6 @@ export class ServicioService {
 
     tableBindingProperties: TableComponentVm<Servicio>['bindingProperties'] = [
         { title: 'Id', getValue: item => item.id, behavior: PropBehavior.number },
-        { title: 'Uuid', getValue: item => item.uuid, behavior: PropBehavior.string },
         { title: 'Código', getValue: item => item.codigo, behavior: PropBehavior.string },
         { title: 'Nombre', getValue: item => item.nombre, behavior: PropBehavior.string },
         { title: 'Categoria', getValue: item => item.servicioCategoria?.nombre, behavior: PropBehavior.string },
@@ -155,8 +154,8 @@ export class ServicioService {
                 c.store = store;
 
                 c.vm$.next({
+                    ...c.vm$.value,
                     title: 'Servicio',
-                    isCloseActive: true,
                     state: StateObjectComponent.read,
                     bindingProperties: [
                         { title: 'Id', getValue: item => item.id, behavior: PropBehavior.number },

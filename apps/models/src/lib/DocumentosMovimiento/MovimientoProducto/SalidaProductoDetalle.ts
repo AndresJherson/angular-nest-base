@@ -1,10 +1,11 @@
-import { Prop, PropBehavior } from "../../Model";
-import { MovimientoProductoDetalle } from "./MovimientoProductoDetalle";
-import { SalidaProducto } from "./SalidaProducto";
+import { MovimientoProductoDetalle, Prop, PropBehavior, SalidaProducto } from '../../../index';
 
 @Prop.Class()
 export class SalidaProductoDetalle extends MovimientoProductoDetalle
 {
+    static override type = 'SalidaProductoDetalle';
+    @Prop.Set() override type: string = SalidaProductoDetalle.type;
+
     @Prop.Set( PropBehavior.model, () => SalidaProducto ) declare documentoMovimiento?: SalidaProducto;
 
 

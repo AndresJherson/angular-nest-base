@@ -1,22 +1,75 @@
-<div class="tw-mb-4">
+@if ( vm$ | async; as vm ) {
 
-    <div class="tw-max-w-full tw-min-h-max tw-flex tw-overflow-x-auto">
+    @if( !tabs || tabs.length === 0 ) {
+
+        <div class="tw-flex tw-justify-between tw-gap-4">
+
+            <div class="tw-flex tw-items-center tw-gap-2">
     
-        @for (tab of tabs; track $index) {
+                @if ( vm.isCloseActive ) {
+                    <i class="bi bi-arrow-bar-left btn btn-light !tw-text-base !tw-shadow" (click)="close( $event )"></i>
+                }
     
-            <button type="button"
-                (click)="selectTab( tab )"
-                class="tw-bg-white tw-px-4 tw-py-2 tw-border-none tw-cursor-pointer"
-                [ngClass]="{
-                    '!tw-border-solid tw-border-b-2 tw-border-b-blue-800': tab.active
-                }">{{ tab.title }}</button>
+                <h4>{{ vm.title }}</h4>
+                
+            </div>
     
-        }
+        </div>
+
+    }
+
+    <div class="tw-mb-4">
     
+        <div class="tw-max-w-full tw-min-h-max tw-flex tw-overflow-x-auto">
+        
+            @if ( tabs && tabs.length > 0 ) {
+
+                @for (tab of tabs; track $index) {
+            
+                    <button type="button"
+                        (click)="selectTabItemComponent( tab )"
+                        class="tw-bg-white tw-px-4 tw-py-2 tw-border-none tw-cursor-pointer"
+                        [ngClass]="{
+                            '!tw-border-solid tw-border-b-2 tw-border-b-blue-800': tab.active
+                        }">{{ tab.title }}</button>
+            
+                }
+
+            }
+            @else {
+
+                @for (tab of vm.tabs; track $index) {
+
+                    <button type="button"
+                        (click)="selectTabItemVm( tab )"
+                        class="tw-bg-white tw-px-4 tw-py-2 tw-border-none tw-cursor-pointer"
+                        [ngClass]="{
+                            '!tw-border-solid tw-border-b-2 tw-border-b-blue-800': tab.active
+                        }">{{ tab.title }}</button>
+
+                }
+
+            }
+
+        
+        </div>
+        
+        <hr style="margin: 0;">
+        
     </div>
     
-    <hr style="margin: 0;">
     
-</div>
+    @if ( tabs && tabs.length > 0 ) {
+        
+        <ng-content></ng-content>
+    
+    }
+    @else {
+    
+        <div overlayDirective [overlayService]="overlayService"
+            class="tw-min-h-full tw-min-w-full tw-max-h-full tw-max-w-full
+                tw-flex"></div>
 
-<ng-content></ng-content>
+    }
+
+}

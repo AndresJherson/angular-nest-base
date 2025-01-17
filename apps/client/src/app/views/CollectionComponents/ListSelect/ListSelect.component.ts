@@ -1,4 +1,4 @@
-import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
+import { Component, EventEmitter, HostBinding, inject, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IComponent } from '../../../interfaces/IComponent';
 import { ItemType } from '../../../interfaces/ItemType';
@@ -32,8 +32,11 @@ export class ListSelectComponent<T extends ItemType> implements IComponent<ListS
 
     @Input() vm$ = new BehaviorSubject<ListSelectComponentVm<T>>({
         title: '',
+        classesCss: '',
         displayValue: item => undefined
     });
+
+    @HostBinding( 'class' ) hostClasses: string = '';
 
     inputSearchComponentVm$ = new BehaviorSubject<InputSearchComponentVm<T>>({
         value2search: '',
@@ -79,6 +82,10 @@ export class ListSelectComponent<T extends ItemType> implements IComponent<ListS
         } ) );
 
         this.sub.add( this.secondStore.error$.subscribe( error => this.modalService.open( MessageBoxComponent ).subscribe( c => c.mensaje = error ) ) );
+
+        this.sub.add( this.vm$.subscribe( vm => {
+            this.hostClasses = vm.classesCss ?? '';
+        } ) );
     }
 
 
@@ -138,6 +145,7 @@ export class ListSelectComponent<T extends ItemType> implements IComponent<ListS
 export interface ListSelectComponentVm<T extends ItemType>
 {
     title: string;
+    classesCss?: string;
     displayValue: ( item: T ) => T[keyof T] | undefined;
 }
 

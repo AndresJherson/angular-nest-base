@@ -1,12 +1,13 @@
 import Decimal from "decimal.js";
-import { Producto } from "../../ElementosEconomicos/Bien/Producto/Producto";
-import { Model, Prop, PropBehavior } from "../../Model";
-import { MovimientoProducto } from "./MovimientoProducto";
+import { Model, MovimientoProducto, Producto, Prop, PropBehavior } from '../../../index';
 import { ErrorModel } from "../../utils/ErrorModel";
 
 @Prop.Class()
 export class MovimientoProductoDetalle extends Model
 {
+    static override type = 'MovimientoProductoDetalle';
+    @Prop.Set() type: string = MovimientoProductoDetalle.type;
+    
     @Prop.Set( PropBehavior.model, () => MovimientoProducto ) documentoMovimiento?: MovimientoProducto;
     @Prop.Set( PropBehavior.model, () => Producto ) producto?: Producto;
     @Prop.Set() cantidad: number = 0;
@@ -32,5 +33,17 @@ export class MovimientoProductoDetalle extends Model
         catch ( error ) {
             throw new ErrorModel( 'Error en el cálculo de valor total de detalles de Movimiento de Producto' );
         }
+    }
+
+
+    static initialize( data: Partial<MovimientoProductoDetalle>[] ): MovimientoProductoDetalle[]
+    {
+        return data.map( item => 
+            new (
+                Prop.GetClass<MovimientoProductoDetalle>( item.type )
+                ?? Prop.GetClass( Object.getPrototypeOf( item ) )
+                ?? MovimientoProductoDetalle
+            )( item )
+        );
     }
 }

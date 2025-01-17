@@ -1,0 +1,8 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    max-width: 100%;
+
+    @apply tw-shadow-md tw-rounded tw-p-4 tw-gap-4;
+}

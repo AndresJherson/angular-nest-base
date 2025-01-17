@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConectorService } from '../../services/conector.service';
 import { SessionData } from '../../interfaces/interfaces';
-import { Genero } from 'apps/models/src/lib/Personas/Genero';
+import { Genero } from '@app/models';
 import { ERROR_CRUD } from '../../interfaces/constants';
 import { AppService } from '../../app.service';
 import { SQLBuilder } from '../../services/SQLBuilder';

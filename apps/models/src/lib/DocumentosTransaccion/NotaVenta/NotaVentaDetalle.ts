@@ -1,11 +1,12 @@
 import Decimal from "decimal.js";
-import { NotaVenta } from "./NotaVenta";
-import { Model, Prop, PropBehavior } from "../../Model";
-import { ElementoEconomico } from "../../ElementosEconomicos/ElementoEconomico";
+import { ElementoEconomico, Model, NotaVenta, Prop, PropBehavior } from '../../../index';
 import { ErrorModel } from "../../utils/ErrorModel";
 
+@Prop.Class()
 export class NotaVentaDetalle extends Model
 {
+    static override type = 'NotaVentaDetalle';
+
     @Prop.Set( PropBehavior.model, () => NotaVenta ) notaVenta?: NotaVenta;
     
     @Prop.Set( PropBehavior.model, () => ElementoEconomico ) elementoEconomico?: ElementoEconomico;

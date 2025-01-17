@@ -1,10 +1,10 @@
-import { Model, Prop, PropBehavior } from "../Model";
-import { Usuario } from "../Personas/Usuario/Usuario";
-import { DocumentoTransaccion } from "./DocumentoTransaccion";
+import { DocumentoTransaccion, Model, Prop, PropBehavior, Usuario } from '../../index';
 
 @Prop.Class()
 export class Carpeta extends Model
 {
+    static override type = 'Carpeta';
+
     @Prop.Set() nombre?: string;
     @Prop.Set( PropBehavior.datetime ) fechaCreacion?: string;
     @Prop.Set( PropBehavior.model, () => Usuario ) usuario?: Usuario;

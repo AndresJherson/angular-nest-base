@@ -1,8 +1,9 @@
-import { Model, Prop } from "../../../Model";
+import { Model, Prop } from "../../../../index";
 
 @Prop.Class()
 export class PantallaMarca extends Model
 {
+    static override type = 'PantallaMarca';
     @Prop.Set() nombre?: string;
 
 

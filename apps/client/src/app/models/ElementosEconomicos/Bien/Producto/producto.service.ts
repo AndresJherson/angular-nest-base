@@ -12,6 +12,8 @@ import { ComponentStore } from 'apps/client/src/app/services/ComponentStore';
 import { ObjectComponent, StateObjectComponent } from 'apps/client/src/app/views/ObjectComponents/Object/Object.component';
 import { MagnitudService } from '../magnitud.service';
 import { MessageBoxComponent } from 'apps/client/src/app/views/Components/MessageBox/MessageBox.component';
+import { Kardex } from '@app/models';
+import { ProductoComponent } from 'apps/client/src/app/views/ObjectComponents/ElementosEconomicos/Producto/Producto.component';
 
 @Injectable({
   providedIn: 'root'
@@ -79,9 +81,19 @@ export class ProductoService {
     }
 
 
+    kardexMetodoPromedio( producto: Producto )
+    {
+        return this.httpService.post<Kardex<Producto>>({
+            service: this.serviceName,
+            method: 'kardexMetodoPromedio',
+            values: { producto }
+        })
+        .pipe( map( item => new Kardex<Producto>( item ) ) );
+    }
+
+
     tableBindingProperties: TableComponentVm<Producto>['bindingProperties'] = [
         { title: 'Id', getValue: item => item.id, behavior: PropBehavior.number },
-        { title: 'Uuid', getValue: item => item.uuid, behavior: PropBehavior.string },
         { title: 'Código', getValue: item => item.codigo, behavior: PropBehavior.string },
         { title: 'Nombre', getValue: item => item.nombre, behavior: PropBehavior.string },
         { title: 'Magnitud', getValue: item => item.magnitud?.nombre, behavior: PropBehavior.string },
@@ -122,8 +134,8 @@ export class ProductoService {
                 ) );
 
                 c.sub.add( c.onSelectItem.subscribe( e => 
-                    this.openObjectComponent( c.store, c.store.storeFromThisAsync( e.item, this.getItem( e.item ) ) )
-                    .subscribe( oc => oc.vm$.next({ ...oc.vm$.value, state: StateObjectComponent.read }) )
+                    this.openProductoComponent( c.store.storeFromThis( () => e.item ), overlayService )
+                    .subscribe()
                 ) );
 
             } )
@@ -152,6 +164,22 @@ export class ProductoService {
     }
 
 
+    openProductoComponent( store: ComponentStore<Producto>, overlayService: OverlayService )
+    {
+        return overlayService.open( ProductoComponent ).pipe(
+            tap( c => {
+
+                c.storeProducto = store;
+
+                c.overlayService = overlayService;
+
+                c.sub.add( c.onClose.subscribe( () => overlayService.close( c ) ) );
+
+            } )
+        )
+    }
+
+
     openObjectComponent( parentStore: ComponentStore<Producto[]>, store: ComponentStore<Producto> )
     {
         return this.modalService.open( ObjectComponent<Producto> )
@@ -161,8 +189,8 @@ export class ProductoService {
                 c.store = store;
 
                 c.vm$.next({
+                    ...c.vm$.value,
                     title: 'Producto',
-                    isCloseActive: true,
                     state: StateObjectComponent.read,
                     bindingProperties: [
                         { title: 'Id', getValue: item => item.id, behavior: PropBehavior.number },

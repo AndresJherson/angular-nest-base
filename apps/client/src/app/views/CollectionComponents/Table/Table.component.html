@@ -2,7 +2,7 @@
 
     @if ( vm.isHeadActive ) {
         
-        <div class="tw-flex tw-justify-between tw-items-center tw-gap-4">
+        <div class="tw-flex tw-justify-between tw-items-center tw-gap-4 tw-w-full">
     
             <div class="tw-flex tw-items-center tw-gap-2">
 
@@ -22,9 +22,11 @@
                     [store]="secondStore"
                     [vm$]="inputSearchComponentVm$"
                     (onSearch)="searchItem( $event )"/>
-    
-                <i class="bi bi-arrow-repeat tw-flex tw-items-center tw-p-2 tw-text-base tw-text-white tw-bg-blue-950 tw-cursor-pointer tw-rounded tw-shadow-sm"
-                    (click)="readItems( $event )"></i>
+
+                    @if ( vm.isReadButtonActive ) {
+                        <i class="bi bi-arrow-repeat tw-flex tw-items-center tw-p-2 tw-text-base tw-text-white tw-bg-blue-950 tw-cursor-pointer tw-rounded tw-shadow-sm"
+                            (click)="readItems( $event )"></i>
+                    }
 
                 <app-buttons-menu [vm$]="buttonsMenuComponentVm$"/>
                 
@@ -35,8 +37,7 @@
     }
     
 
-    <div class="tw-flex tw-max-w-full tw-overflow-hidden 
-        tw-shadow tw-self-center">
+    <div class="tw-flex tw-max-w-full tw-overflow-hidden tw-shadow">
 
         <div class="tw-overflow-auto">
                 

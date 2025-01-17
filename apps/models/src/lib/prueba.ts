@@ -1,27 +1,18 @@
 import Decimal from "decimal.js";
-import { Bien } from "./ElementosEconomicos/Bien/Bien";
-import { BienCategoria } from "./ElementosEconomicos/Bien/BienCategoria";
-import { BienMarca } from "./ElementosEconomicos/Bien/BienMarca";
-import { Magnitud } from "./ElementosEconomicos/Bien/Magnitud";
-import { MagnitudTipo } from "./ElementosEconomicos/Bien/MagnitudTipo";
-import { Model, Prop, PropBehavior } from "./Model";
-import { ErrorModel } from "./utils/ErrorModel";
-import { DateTime, Interval } from "luxon";
-import { QueryTypes, Sequelize } from 'sequelize';
-import { Usuario } from "./Personas/Usuario/Usuario";
+import { DateTime } from "luxon";
 
-@Prop.Class()
-class Contenedor extends Model
-{
-    @Prop.Set( PropBehavior.model, () => Usuario ) usuario?: Usuario;
-    @Prop.Set( PropBehavior.array, () => Model ) data: Model[] = [];
+// @Prop.Class()
+// class Contenedor extends Model
+// {
+//     @Prop.Set( PropBehavior.model, () => Usuario ) usuario?: Usuario;
+//     @Prop.Set( PropBehavior.array, () => Model ) data: Model[] = [];
 
-    constructor( json?: Partial<Contenedor> )
-    {
-        super();
-        Prop.initialize( this, json );
-    }
-}
+//     constructor( json?: Partial<Contenedor> )
+//     {
+//         super();
+//         Prop.initialize( this, json );
+//     }
+// }
 
 // const data: Model[] = [
 //     new Usuario({
@@ -436,28 +427,51 @@ select json_object(
     left join elemento_economico on elemento_economico.id = bien.id
 `;
 
+const queryInsert = 'insert into ( patron, contrasena ) celular values ( :patron, :contrasena )'
 
-const getData = async () => {
+// const getData = async () => {
 
-    const sequelize = new Sequelize(
-        'servicio_tecnico',
-        'root',
-        'root123',
-        {
-            host: 'localhost',
-            dialect: 'mysql',
-            port: 3306
-        }
-    );
+//     const sequelize = new Sequelize(
+//         'prueba2',
+//         'root',
+//         'root123',
+//         {
+//             host: 'localhost',
+//             dialect: 'mysql',
+//             port: 3306
+//         }
+//     );
     
-    const data = await sequelize.query( query, {
-        type: QueryTypes.SELECT,
-        replacements: {
-            id: null,
-            nombre: null
-        }
-    } );
+//     const data = await sequelize.query( queryInsert, {
+//         type: QueryTypes.INSERT,
+//         replacements: {
+//             patron: NaN,
+//             contrasena: NaN
+//         }
+//     } );
 
-}
+//     console.log( data );
 
-getData();
+// }
+
+// getData();
+
+// console.log( MovimientoEfectivo )
+
+// import 'reflect-metadata';
+
+// const originalRequire = module.constructor.prototype.require;
+// module.constructor.prototype.require = function (...args: any[]) {
+//     const [modulePath] = args;
+//     try {
+//         const result = originalRequire.apply(this, args);
+//         return result;
+//     } catch (error) {
+//         console.error(`Error al cargar el módulo: ${modulePath}`, error);
+//         throw error;
+//     }
+// };
+
+
+const datetime = DateTime.fromSQL( '2022-12-13' )
+console.log( datetime.toFormat( 'yyyy-MM-dd HH:mm:ss' ) )

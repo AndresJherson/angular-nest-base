@@ -1,12 +1,12 @@
-import { Prop, PropBehavior } from "../../Model";
-import { ElementoEconomico } from "../ElementoEconomico";
-import { ServicioCategoria } from "./ServicioCategoria";
+import { ElementoEconomico, Prop, PropBehavior, ServicioCategoria } from "../../../index";
 
 @Prop.Class()
 export class Servicio extends ElementoEconomico
 {
+    static override type = 'Servicio';
+    @Prop.Set() override type: string = Servicio.type;
+
     @Prop.Set( PropBehavior.model, () => ServicioCategoria ) servicioCategoria?: ServicioCategoria;
-    @Prop.Set() override type: string = Servicio.name;
 
 
     constructor( json?: Partial<Servicio> )

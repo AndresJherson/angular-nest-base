@@ -150,15 +150,15 @@ export class UsuarioService {
                 c.store = store;
 
                 c.vm$.next({
+                    ...c.vm$.value,
                     title: 'Usuario',
-                    isCloseActive: true,
                     state: StateObjectComponent.read,
                     bindingProperties: [
                         { title: 'Id', getValue: item => item.id, behavior: PropBehavior.number },
                         { title: 'Nombre', getValue: item => item.nombre, setValue: ( item, value ) => item.set({ nombre: value }), required: true, behavior: PropBehavior.string },
                         { title: 'Usuario', getValue: item => item.usuario, setValue: ( item, value ) => item.set({ usuario: value }), required: true, behavior: PropBehavior.string },
-                        { title: 'Contraseña', setValue: ( item, value ) => item.set({ contrasena: value }), required: true, behavior: PropBehavior.string },
-                        { title: 'Activo', getValue: ( item, obj ) => obj ? item.esActivo : ( item.esActivo ? 'Sí' : 'No' ), setValue: ( item, value ) => item.set({ esActivo: value }), behavior: PropBehavior.boolean },
+                        { title: 'Contraseña', getValue: ( item, original ) => original ? item.contrasena : '-', setValue: ( item, value ) => item.set({ contrasena: value }), required: true, behavior: PropBehavior.string },
+                        { title: 'Activo', getValue: ( item, original ) => original ? item.esActivo : ( item.esActivo ? 'Sí' : 'No' ), setValue: ( item, value ) => item.set({ esActivo: value }), behavior: PropBehavior.boolean },
                     ]
                 });
 

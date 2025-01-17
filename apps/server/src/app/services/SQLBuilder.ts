@@ -81,9 +81,17 @@ class SQLUpdate
 
         // Procesar las condiciones del WHERE
         Object.entries(this.whereData).forEach(([column, value]) => {
-            const paramName = `where_${column}`;
-            whereClauses.push(`${column} = :${paramName}`);
-            parameters[paramName] = value;
+            if (Array.isArray(value)) {
+                const paramNames = value.map((_, i) => `where_${column}_${i}`);
+                whereClauses.push(`${column} IN (${paramNames.map((p) => `:${p}`).join(', ')})`);
+                value.forEach((v, i) => {
+                    parameters[`${paramNames[i]}`] = v;
+                });
+            } else {
+                const paramName = `where_${column}`;
+                whereClauses.push(`${column} = :${paramName}`);
+                parameters[paramName] = value;
+            }
         });
 
         const query = `
@@ -129,9 +137,17 @@ class SQLDelete
 
         // Procesar las condiciones del WHERE
         Object.entries(this.whereData).forEach(([column, value]) => {
-            const paramName = `where_${column}`;
-            whereClauses.push(`${column} = :${paramName}`);
-            parameters[paramName] = value;
+            if (Array.isArray(value)) {
+                const paramNames = value.map((_, i) => `where_${column}_${i}`);
+                whereClauses.push(`${column} IN (${paramNames.map((p) => `:${p}`).join(', ')})`);
+                value.forEach((v, i) => {
+                    parameters[`${paramNames[i]}`] = v;
+                });
+            } else {
+                const paramName = `where_${column}`;
+                whereClauses.push(`${column} = :${paramName}`);
+                parameters[paramName] = value;
+            }
         });
 
         const query = `

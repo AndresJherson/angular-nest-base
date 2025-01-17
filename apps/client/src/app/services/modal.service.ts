@@ -31,7 +31,7 @@ export class ModalService {
                 wrapper.instance.isClosable = isClosable;
         
                 this.appRef.attachView( wrapper.hostView );
-                document.body.appendChild( wrapper.location.nativeElement );
+                document.body.prepend( wrapper.location.nativeElement );
         
                 this.components.push({
                     wrapper: wrapper,

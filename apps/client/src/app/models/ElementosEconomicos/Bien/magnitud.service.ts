@@ -151,8 +151,8 @@ export class MagnitudService {
                 c.store = store;
 
                 c.vm$.next({
+                    ...c.vm$.value,
                     title: 'Magnitud',
-                    isCloseActive: true,
                     state: StateObjectComponent.read,
                     bindingProperties: [
                         { title: 'Id', getValue: item => item.id, behavior: PropBehavior.number },

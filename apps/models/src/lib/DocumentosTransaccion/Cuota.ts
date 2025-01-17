@@ -1,10 +1,13 @@
 import { Interval } from "luxon";
-import { Model, Prop, PropBehavior } from "../Model";
-import { Credito } from "./Credito";
+import { Credito, Model, Prop, PropBehavior } from '../../index';
 import { ErrorModel } from "../utils/ErrorModel";
 
+@Prop.Class()
 export class Cuota extends Model
 {
+    static override type = 'Cuota';
+    @Prop.Set() type: string = Cuota.type;
+
     @Prop.Set( PropBehavior.model, () => Credito ) credito?: Credito;
 
     @Prop.Set() numero: number = 0;
@@ -25,7 +28,6 @@ export class Cuota extends Model
     @Prop.Set() importePorCobrar: number = 0;
     @Prop.Set() porcentajeCobrado: number = 0;
     @Prop.Set() porcentajePorCobrar: number = 0;
-
 
 
     constructor( json?: Partial<Cuota> )

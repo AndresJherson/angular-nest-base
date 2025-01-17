@@ -1,0 +1,240 @@
+@if ( vm$ | async; as vm ) {
+    
+    <div class="tw-flex tw-justify-between tw-gap-4">
+    
+        <div class="tw-flex tw-items-center tw-gap-2">
+    
+            @if ( vm.isCloseButtonActive ) {
+                <i class="bi bi-arrow-bar-left btn btn-light !tw-text-base !tw-shadow" (click)="close( $event )"></i>
+            }
+    
+            <h4>{{ vm.title }}</h4>
+            
+        </div>
+    
+        <div class="tw-flex tw-gap-2">
+            <i class="bi bi-arrow-repeat tw-flex tw-items-center tw-p-2 tw-text-base tw-text-white tw-bg-blue-950 tw-cursor-pointer tw-rounded tw-shadow-sm"
+                (click)="read( $event )"></i>
+        </div>
+    
+    </div>
+
+
+    <div class="tw-flex tw-flex-col tw-gap-4 tw-min-h-full tw-max-h-full">
+
+        <div class="tw-flex tw-flex-col tw-gap-4
+                    lg:tw-grid lg:tw-grid-cols-3">
+
+            <div>
+                <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Producto</label>
+                <div>{{ kardex.articulo?.nombre ?? '-' }}</div>
+            </div>
+    
+            <div>
+                <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Código</label>
+                <div>{{ kardex.articulo?.codigo ?? '-' }}</div>
+            </div>
+    
+            <div>
+                <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Método de Inventario</label>
+                <div>{{ kardex.metodo ?? '-' }}</div>
+            </div>
+
+        </div>
+
+
+        <div class="tw-flex tw-max-w-full tw-shadow tw-overflow-hidden">
+            <div class="tw-overflow-auto">
+
+                <table class="tw-border-collapse tw-relative">
+                    <thead class="tw-sticky tw-top-0 tw-z-20">
+                        <tr>
+                            <th rowspan="2" class="tw-rounded-tl">Fecha</th>
+                            <th rowspan="2">Concepto</th>
+                            <th rowspan="2">Documento Movimiento</th>
+                            <th rowspan="2" class="!tw-border-r-4">Documento Transaccion</th>
+
+                            <th colspan="3" class="tw-text-center !tw-border-r-4">Entrada</th>
+                            <th colspan="3" class="tw-text-center !tw-border-r-4">Salida</th>
+                            <th colspan="3" class="tw-text-center tw-rounded-tr !tw-border-r-4">Saldo</th>
+                        </tr>
+                        <tr>
+                            <th class="th-internal">Cantidad</th>
+                            <th class="th-internal">Costo Unitario</th>
+                            <th class="th-internal !tw-border-r-4">Costo Total</th>
+
+                            <th class="th-internal">Cantidad</th>
+                            <th class="th-internal">Costo Unitario</th>
+                            <th class="th-internal !tw-border-r-4">Costo Total</th>
+
+                            <th class="th-internal">Cantidad</th>
+                            <th class="th-internal">Valor Unitario</th>
+                            <th class="th-internal !tw-border-r-4">Valor Total</th>
+                        </tr>
+                    </thead>
+                    <tbody #tbody>
+                        @for (movimiento of kardex.movimientos; track _rowIndex; let _rowIndex = $index) {
+                            <tr [ngClass]="{
+                                    'tr-click': movimiento === selectedItem,
+                                }"
+                                (click)="selectedItem = movimiento"
+                                #rowCollection>
+                
+                                <td>
+                                    <div class="x-value !tw-text-nowrap">{{
+                                        Prop.toDateTime( movimiento.fecha ).isValid
+                                            ? Prop.toDateTime( movimiento.fecha ).toSQLDate()
+                                            : ''
+                                    }}</div>
+                                </td>
+
+                                <td>
+                                    <div class="x-value">{{ movimiento.concepto ?? '' }}</div>
+                                </td>
+
+                                <td>
+                                    <div class="x-value">{{ movimiento.codigoDocumentoMovimiento ?? '' }}</div>
+                                </td>
+
+                                <td class="!tw-border-r-4">
+                                    <div class="x-value">{{ movimiento.codigoDocumentoTransaccion ?? '' }}</div>
+                                </td>
+
+
+                                <!-- entradas -->
+                                <td>
+                                    <div class="x-value-number">{{ 
+                                        movimiento.entradaCantidad !== undefined 
+                                            ? Prop.toDecimal( movimiento.entradaCantidad ).toFixed( 0 ) 
+                                            : '' 
+                                    }}</div>
+                                </td>
+
+                                <td>
+                                    <div class="x-value-number">{{
+                                        movimiento.entradaCostoUnitario !== undefined 
+                                            ? Prop.toDecimal( movimiento.entradaCostoUnitario ).toFixed( 2 ) 
+                                            : ''
+                                    }}</div>
+                                </td>
+
+                                <td class="!tw-border-r-4">
+                                    <div class="x-value-number">{{
+                                        movimiento.entradaCostoTotal !== undefined 
+                                            ? Prop.toDecimal( movimiento.entradaCostoTotal ).toFixed( 2 ) 
+                                            : ''
+                                    }}</div>
+                                </td>
+
+
+                                <!-- salidas -->
+                                <td>
+                                    <div class="x-value-number">{{ 
+                                        movimiento.salidaCantidad !== undefined 
+                                            ? Prop.toDecimal( movimiento.salidaCantidad ).toFixed( 0 ) 
+                                            : '' 
+                                    }}</div>
+                                </td>
+
+                                <td>
+                                    <div class="x-value-number">{{
+                                        movimiento.salidaCostoUnitario !== undefined 
+                                            ? Prop.toDecimal( movimiento.salidaCostoUnitario ).toFixed( 2 ) 
+                                            : ''
+                                    }}</div>
+                                </td>
+
+                                <td class="!tw-border-r-4">
+                                    <div class="x-value-number">{{
+                                        movimiento.salidaCostoTotal !== undefined 
+                                            ? Prop.toDecimal( movimiento.salidaCostoTotal ).toFixed( 2 ) 
+                                            : ''
+                                    }}</div>
+                                </td>
+
+
+                                <!-- saldos -->
+                                <td>
+                                    <div class="x-value-number">{{ 
+                                        movimiento.saldoCantidad !== undefined 
+                                            ? Prop.toDecimal( movimiento.saldoCantidad ).toFixed( 0 ) 
+                                            : '' 
+                                    }}</div>
+                                </td>
+
+                                <td>
+                                    <div class="x-value-number">{{
+                                        movimiento.saldoValorUnitario !== undefined 
+                                            ? Prop.toDecimal( movimiento.saldoValorUnitario ).toFixed( 2 ) 
+                                            : ''
+                                    }}</div>
+                                </td>
+
+                                <td class="!tw-border-r-4">
+                                    <div class="x-value-number">{{
+                                        movimiento.saldoValorTotal !== undefined 
+                                            ? Prop.toDecimal( movimiento.saldoValorTotal ).toFixed( 2 ) 
+                                            : ''
+                                    }}</div>
+                                </td>
+                
+                            </tr>
+                        }
+
+                        <tr class="tw-sticky tw-bottom-0"
+                            (click)="selectedItem = undefined">
+
+                            <td colspan="4" class="!tw-border-r-4">
+                                <div class="x-value !tw-font-bold !tw-text-right">Totales</div>
+                            </td>
+
+                            <!-- entradas -->
+                            <td>
+                                <div class="x-value-number">{{ Prop.toDecimal( kardex.total.entradaCantidadTotal ).toFixed( 0 ) }}</div>
+                            </td>
+
+                            <td>
+                                <div class="x-value-number"></div>
+                            </td>
+
+                            <td class="!tw-border-r-4">
+                                <div class="x-value-number">{{ Prop.toDecimal( kardex.total.entradaCostoTotal ).toFixed( 2 )  }}</div>
+                            </td>
+
+                            <!-- salidas -->
+                            <td>
+                                <div class="x-value-number">{{ Prop.toDecimal( kardex.total.salidaCantidadTotal ).toFixed( 0 ) }}</div>
+                            </td>
+
+                            <td>
+                                <div class="x-value-number"></div>
+                            </td>
+
+                            <td class="!tw-border-r-4">
+                                <div class="x-value-number">{{ Prop.toDecimal( kardex.total.salidaCostoTotal ).toFixed( 2 ) }}</div>
+                            </td>
+
+                            <!-- saldos -->
+                            <td>
+                                <div class="x-value-number">{{ Prop.toDecimal( kardex.total.existencias ).toFixed( 0 ) }}</div>
+                            </td>
+
+                            <td>
+                                <div class="x-value-number">{{ Prop.toDecimal( kardex.total.costoUnitarioSalida ).toFixed( 2 ) }}</div>
+                            </td>
+
+                            <td class="!tw-border-r-4">
+                                <div class="x-value-number">{{ Prop.toDecimal( kardex.total.valorTotal ).toFixed( 2 ) }}</div>
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+
+    </div>
+
+}

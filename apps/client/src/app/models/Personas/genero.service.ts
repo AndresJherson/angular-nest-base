@@ -37,7 +37,7 @@ export class GeneroService {
             method: 'getItem',
             values: { genero }
         })
-        .pipe( map( item =>{ console.log('getItem', item ); return new Genero( item ) } ) )
+        .pipe( map( item => new Genero( item ) ) )
     }
 
 
@@ -48,7 +48,7 @@ export class GeneroService {
             method: 'createItem',
             values: { genero }
         })
-        .pipe( map( item =>{ console.log('createItem', item ); return new Genero( item ) } ) )
+        .pipe( map( item => new Genero( item ) ) )
     }
 
 
@@ -148,8 +148,8 @@ export class GeneroService {
                 c.store = store;
 
                 c.vm$.next({
+                    ...c.vm$.value,
                     title: 'Género',
-                    isCloseActive: true,
                     state: StateObjectComponent.read,
                     bindingProperties: [
                         { title: 'Id', getValue: item => item.id, behavior: PropBehavior.number },

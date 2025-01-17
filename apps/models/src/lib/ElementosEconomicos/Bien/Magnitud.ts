@@ -1,9 +1,9 @@
-import { MagnitudTipo } from "./MagnitudTipo";
-import { Model, Prop, PropBehavior } from "../../Model";
+import { MagnitudTipo, Model, Prop, PropBehavior } from "../../../index";
 
 @Prop.Class()
 export class Magnitud extends Model
 {
+    static override type = 'Magnitud';
     @Prop.Set() nombre?: string;
     @Prop.Set( PropBehavior.model, () => MagnitudTipo ) magnitudTipo?: MagnitudTipo;
 

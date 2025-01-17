@@ -1,0 +1,35 @@
+<div class="tw-flex tw-gap-4 tw-items-center">
+    
+    <i class="bi bi-arrow-bar-left btn btn-light !tw-text-base !tw-shadow" (click)="close( $event )"></i>
+
+    <h1>Producto {{ producto.nombre ?? '-' }}</h1>
+
+</div>
+
+
+<app-tab>
+
+    <app-tab-item title="Registro"
+        [active]="true"
+        #tabRegistro>
+    
+        @if ( tabRegistro.active ) {
+            <app-object class="!tw-min-h-full !tw-shadow-none !tw-p-0 !tw-pt-4"
+                (onInit)="objectComponentOnInit( $event )"/>
+        }
+    
+    
+    </app-tab-item>
+    
+    
+    <app-tab-item title="Kardex"
+        #tabKardex>
+    
+        @if ( tabKardex.active ) {
+            <app-kardex class="!tw-min-h-full !tw-shadow-none !tw-p-0 !tw-pt-4"
+                (onInit)="kardexComponentOnInit( $event )"/>
+        }
+    
+    </app-tab-item>
+
+</app-tab>

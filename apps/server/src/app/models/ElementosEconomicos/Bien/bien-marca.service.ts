@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConectorService } from '../../../services/conector.service';
 import { SessionData } from '../../../interfaces/interfaces';
-import { BienMarca } from 'apps/models/src/lib/ElementosEconomicos/Bien/BienMarca';
+import { BienMarca } from '@app/models';
 import { ERROR_CRUD } from '../../../interfaces/constants';
 import { SQLBuilder } from '../../../services/SQLBuilder';
 import { AppService } from '../../../app.service';

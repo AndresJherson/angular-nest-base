@@ -1,334 +1,586 @@
-<div class="tw-flex tw-flex-col tw-gap-4 tw-p-4 tw-rounded tw-shadow-md">
+@if ( vm$ | async; as vm ) {
 
-    <div class="tw-flex tw-justify-between">
+    <div class="tw-flex tw-flex-col tw-gap-4 tw-p-4 tw-rounded tw-shadow-md">
     
-        <div class="tw-flex tw-items-center tw-gap-4">
-    
-            <i class="bi bi-arrow-bar-left btn btn-light !tw-text-base !tw-shadow"
-                (click)="close( $event )"></i>
-    
-            <h4>{{ 
-                'Nota de Venta' + 
-                ( 
-                    notaVenta.codigoSerie !== undefined && notaVenta.codigoNumero !== undefined
-                    ? ( ' ' + notaVenta.codigoSerie + '-' + notaVenta.codigoNumero) 
-                    : '' 
-                ) 
-            }}</h4>
-    
+        <div class="tw-flex tw-justify-between">
+        
+            <div class="tw-flex tw-items-center tw-gap-4">
+        
+                @if ( vm.isCloseButtonActive ) {
+                    <i class="bi bi-arrow-bar-left btn btn-light !tw-text-base !tw-shadow"
+                        (click)="close( $event )"></i>
+                }
+        
+                <h4>{{ 
+                    'Nota de Venta' + 
+                    ( 
+                        notaVenta.codigoSerie !== undefined && notaVenta.codigoNumero !== undefined
+                        ? ( ' ' + notaVenta.codigoSerie + '-' + notaVenta.codigoNumero) 
+                        : '' 
+                    ) 
+                }}</h4>
+        
+            </div>
+        
+            <div class="tw-flex tw-gap-4">
+        
+                @if ( vm.stateComponent === StateComponentNotaVentaComponent.create || vm.stateComponent === StateComponentNotaVentaComponent.update ) {
+                    <button type="button"
+                        class="btn btn-light !tw-text-base !tw-shadow"
+                        (click)="procesarInformacion( $event )">Procesar Información</button>
+                }
+                @else if ( vm.stateComponent === StateComponentNotaVentaComponent.read || vm.stateComponent === StateComponentNotaVentaComponent.none ) {
+                    <i class="bi bi-arrow-repeat tw-flex tw-items-center tw-p-2 tw-text-base tw-text-white tw-bg-blue-950 tw-cursor-pointer tw-rounded tw-shadow-sm"
+                        (click)="storeNotaVenta.getRead().subscribe()"></i>
+                }
+        
+                <app-buttons-menu [vm$]="buttonsMenuComponentVm$"/>
+        
+            </div>
+        
+        
         </div>
+        
+        <app-tab>
+        
+            <!-- EMISOR -->
     
-        <div class="tw-flex tw-gap-4">
+            <app-tab-item title="Emisor" 
+                [active]="true">
+
+                
+                <div class="tw-flex tw-justify-center">
+                    
+                    <div class="tw-flex tw-flex-col tw-gap-4
+                        lg:tw-grid lg:tw-grid-cols-2">
+                    
+                        @if ( vm.stateComponent === StateComponentNotaVentaComponent.read || vm.stateComponent === StateComponentNotaVentaComponent.none ) {
+        
+                            <div>
+                                <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Id</label>
+                                <div>{{ notaVenta.id ?? '-' }}</div>
+                            </div>
+
+                            <div>
+                                <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Uuid</label>
+                                <div>{{ notaVenta.uuid ?? '-' }}</div>
+                            </div>
+
+                            <div>
+                                <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Código</label>
+                                <div>{{ ( notaVenta.codigoSerie ?? '' ) + '-' + ( notaVenta.codigoNumero ?? '' ) }}</div>
+                            </div>
+
+                            <div>
+                                <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Concepto</label>
+                                <div>{{ notaVenta.concepto ?? '-' }}</div>
+                            </div>
+
+                            <div>
+                                <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Fecha de Creación</label>
+                                <div>{{ Prop.toDateTime( notaVenta.fechaCreacion ).isValid ? Prop.toDateTime( notaVenta.fechaCreacion ).toFormat( 'dd/MM/yyyy HH:mm:ss' ) : '-' }}</div>
+                            </div>
+
+                            <div>
+                                <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Fecha de Emisión</label>
+                                <div>{{ Prop.toDateTime( notaVenta.fechaEmision ).isValid ? Prop.toDateTime( notaVenta.fechaEmision ).toFormat( 'dd/MM/yyyy HH:mm:ss' ) : '-' }}</div>
+                            </div>
+
+                            <div>
+                                <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Fecha de Anulación</label>
+                                <div>{{ Prop.toDateTime( notaVenta.fechaAnulacion ).isValid ? Prop.toDateTime( notaVenta.fechaAnulacion ).toFormat( 'dd/MM/yyyy HH:mm:ss' ) : '-' }}</div>
+                            </div>
+
+                            <div>
+                                <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Fecha de Última Actualización</label>
+                                <div>{{ Prop.toDateTime( notaVenta.fechaActualizacion ).isValid ? Prop.toDateTime( notaVenta.fechaActualizacion ).toFormat( 'dd/MM/yyyy HH:mm:ss' ) : '-' }}</div>
+                            </div>
+        
+                        }
+                        @else {
+
+                            <div>
+                                <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Concepto</label>
+                                <input type="text"
+                                    class="form-control !tw-text-xl"
+                                    [(ngModel)]="notaVenta.concepto">
+                            </div>
+                
+                            <div>
+                                <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Fecha Emisión</label>
+                                <input type="datetime-local"
+                                    class="form-control !tw-text-xl"
+                                    [(ngModel)]="notaVenta.fechaEmision">
+                            </div>
+                
+                            <div>
+                                <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Fecha Anulación</label>
+                                <input type="datetime-local"
+                                    class="form-control !tw-text-xl"
+                                    [(ngModel)]="notaVenta.fechaAnulacion">
+                            </div>
+            
+                        }
+
+                    </div>
+            
+                </div>
+        
+            </app-tab-item>
+        
     
-            <button type="button"
-                class="btn btn-light !tw-text-base !tw-shadow"
-                (click)="calcularInformacion()">Procesar Información</button>
+            <!-- RECEPTOR -->
+        
+            <app-tab-item title="Receptor">
+
+                @if ( vm.stateComponent === StateComponentNotaVentaComponent.read || vm.stateComponent === StateComponentNotaVentaComponent.none ) {
+
+                    <div class="tw-flex tw-justify-center">
+
+                        <div class="tw-flex tw-flex-col tw-gap-4
+                            lg:tw-grid lg:tw-grid-cols-2">
+
+                            @if ( notaVenta.cliente ) {
+
+                                <div>
+                                    <label class="form-lable !tw-text-base !tw-font-bold !tw-m-0">Identificación del Cliente</label>
+                                    <div>{{ notaVenta.cliente.documentoIdentificacion?.nombre ?? '' }} - {{ notaVenta.cliente.codigo ?? '' }}</div>
+                                </div>
+
+                                <div>
+                                    <label class="form-lable !tw-text-base !tw-font-bold !tw-m-0">Nombre del Cliente</label>
+                                    <div>{{ notaVenta.cliente.nombre ?? '' }} {{ notaVenta.cliente.apellido ?? '' }}</div>
+                                </div>
+
+                                <div>
+                                    <label class="form-lable !tw-text-base !tw-font-bold !tw-m-0">Género</label>
+                                    <div>{{ notaVenta.cliente.genero?.nombre ?? '-' }}</div>
+                                </div>
+
+                                <div>
+                                    <label class="form-lable !tw-text-base !tw-font-bold !tw-m-0">Celular</label>
+                                    <div>{{ notaVenta.cliente.celular ?? '-' }} / {{ notaVenta.cliente.celularRespaldo ?? '-' }}</div>
+                                </div>
+
+                            }
+                            @else {
+
+                                <div>
+                                    <label class="form-lable !tw-text-base !tw-font-bold !tw-m-0">Identificación del Cliente</label>
+                                    <div>{{ notaVenta.receptorDocumentoIdentificacion?.nombre ?? '' }} - {{ notaVenta.receptorCodigo ?? '' }}</div>
+                                </div>
+
+                                <div>
+                                    <label class="form-lable !tw-text-base !tw-font-bold !tw-m-0">Nombre del Cliente</label>
+                                    <div>{{ notaVenta.receptorNombre ?? '-' }}</div>
+                                </div>
+
+                                <div>
+                                    <label class="form-lable !tw-text-base !tw-font-bold !tw-m-0">Celular</label>
+                                    <div>{{ notaVenta.receptorCelular ?? '-' }}</div>
+                                </div>
+
+                            }
+
+
+                        </div>
+
+                    </div>
+
+                }
+                @else {
+
+                    <div class="tw-flex tw-flex-col tw-items-center tw-gap-4">
+                        
+                        <div class="tw-flex tw-justify-center">
+            
+                            <div class="form-check form-switch !tw-flex !tw-items-center !tw-gap-2"
+                                (click)="toggleCliente( $event, inputClienteGenerico )">
+            
+                                <input type="checkbox"
+                                    class="form-check-input !tw-h-5 !tw-w-10 !tw-cursor-pointer"
+                                    #inputClienteGenerico>
+                                <label class="form-check-label !tw-text-base !tw-font-bold !tw-cursor-pointer">Cliente Genérico</label>
+            
+                            </div>
+            
+                        </div>
+            
+                        <div class="tw-flex tw-flex-col tw-gap-4
+                            lg:tw-grid lg:tw-grid-cols-2">
+            
+                            @if ( inputClienteGenerico.checked ) {
+            
+                                <div>
+                                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Cliente</label>
+                                    <input type="text"
+                                        class="form-control !tw-text-xl"
+                                        [(ngModel)]="notaVenta.receptorNombre">
+                                </div>
+                    
+                                <div>
+                                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Documento ID</label>
+                                    <input type="text"
+                                        class="form-control !tw-text-xl !tw-cursor-pointer"
+                                        [ngModel]="notaVenta.receptorDocumentoIdentificacion?.nombre"
+                                        (click)="selectReceptorDocumentoIdentificacion()"
+                                        readonly>
+                                </div>
+                    
+                                <div>
+                                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Código ID</label>
+                                    <input type="text"
+                                        class="form-control !tw-text-xl"
+                                        [(ngModel)]="notaVenta.receptorCodigo">
+                                </div>
+            
+                                <div>
+                                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Celular</label>
+                                    <input type="number"
+                                        class="form-control !tw-text-xl"
+                                        [(ngModel)]="notaVenta.receptorCelular">
+                                </div>
+            
+                            }
+                            @else {
+            
+                                <div class="tw-col-span-2">
+                                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Cliente</label>
+                                    <input type="text"
+                                        class="form-control !tw-text-xl !tw-cursor-pointer"
+                                        [ngModel]="notaVenta.cliente?.nombre"
+                                        (click)="selectCliente()"
+                                        readonly>
+                                </div>
+            
+                            }
+            
+            
+                        </div>
+            
+                    </div>
+
+                }        
+        
+            </app-tab-item>
+        
     
-            <app-buttons-menu [vm$]="buttonsMenuComponentVm$"/>
+            <!-- DETALLES -->
+        
+            <app-tab-item title="Detalles">
+
+                <div class="tw-flex tw-justify-center">
+
+                    <div class="tw-flex tw-flex-col tw-gap-4">
+                        
+                        @if ( vm.stateComponent === StateComponentNotaVentaComponent.create || vm.stateComponent === StateComponentNotaVentaComponent.update ) {
     
-        </div>
+                            <div class="tw-flex tw-justify-between tw-items-center">
+
+                                <div class="tw-flex tw-gap-4 tw-items-center">
+                    
+                                    <input type="text"
+                                        class="form-control !tw-text-xl"
+                                        [(ngModel)]="codigoElementoEconomico2search"
+                                        (search)="searchElementoEconomicoPorCodigo()"
+                                        placeholder="Insertar codigo de producto...">
+                    
+                                    <button type="button"
+                                        class="btn btn-primary !tw-text-base"
+                                        (click)="searchElementoEconomicoPorCodigo()">Buscar</button>
+                    
+                                </div>
+
+                                <button type="button"
+                                    class="btn btn-primary !tw-text-base"
+                                    (click)="newDetalleComponent()">Agregar Detalle</button>
+
+                            </div>
+        
+                        }
+            
+                        <div class="tw-w-full tw-flex tw-justify-center">
+                            <div class="tw-w-max tw-max-w-full tw-flex tw-flex-col tw-items-end tw-gap-4">
+            
+                                <app-table class="!tw-shadow-none !tw-p-0"
+                                    (onInit)="detalleTableComponentOnInit( $event )"
+                                    (onSelectItem)="openDetalleComponent( StateObjectComponent.update, $event.item )"/>
+            
+                                <app-table class="!tw-shadow-none !tw-p-0"
+                                    [store]="storeImportes"
+                                    [vm$]="importesTableComponentVm$"
+                                    (onSelectItem)="openAnticipoComponent( StateObjectComponent.update, $event.item )"/>
+            
+                            </div>
+                        </div>
+            
+                    </div>
+
+                </div>
+
+            </app-tab-item>
+        
+        
+            <!-- IMPORTES -->
     
+            <app-tab-item title="Importes">
+        
+                <div class="tw-flex tw-flex-col tw-gap-4">
+        
+                    <div class="tw-flex tw-flex-col tw-gap-4
+                        lg:tw-flex-row">
+        
+                        <div class="tw-w-full tw-flex tw-justify-center">
+        
+                            <app-table class="!tw-shadow-none !tw-p-0"
+                                [store]="storeImportes"
+                                [vm$]="importesTableComponentVm$"
+                                (onSelectItem)="openAnticipoComponent( StateObjectComponent.update, $event.item )"/>
+                                
+                        </div>
+        
+            
+                        <div class="tw-w-full tw-flex tw-justify-center">
+            
+                            <div>
+            
+                                <div class="form-check"
+                                    (click)="vm.stateComponent !== StateComponentNotaVentaComponent.read && vm.stateComponent !== StateComponentNotaVentaComponent.none
+                                            ? selectLiquidacionTipo( 1 )
+                                            : undefined">
+            
+                                    <input type="radio"
+                                        [name]="'NotaVentaComponent_' + instanceId"
+                                        class="form-check-input"
+                                        [checked]="notaVenta.liquidacionTipo?.id === 1"
+                                        [disabled]="( vm.stateComponent === StateComponentNotaVentaComponent.read || vm.stateComponent === StateComponentNotaVentaComponent.none ) && !inputRadio1.checked"
+                                        #inputRadio1>
+                                    <label class="form-check-label !tw-text-base !tw-font-bold !tw-cursor-pointer">Liquidación al Contado</label>
+            
+                                </div>
+            
+            
+                                <div class="form-check"
+                                    (click)="vm.stateComponent !== StateComponentNotaVentaComponent.read && vm.stateComponent !== StateComponentNotaVentaComponent.none
+                                            ? selectLiquidacionTipo( 2 )
+                                            : undefined">
+            
+                                    <input type="radio"
+                                        [name]="'NotaVentaComponent_' + instanceId"
+                                        class="form-check-input"
+                                        [checked]="notaVenta.liquidacionTipo?.id === 2"
+                                        [disabled]="( vm.stateComponent === StateComponentNotaVentaComponent.read || vm.stateComponent === StateComponentNotaVentaComponent.none ) && !inputRadio1.checked"
+                                        #inputRadio2>
+                                    <label class="form-check-label !tw-text-base !tw-font-bold !tw-cursor-pointer">Liquidación al Crédito</label>
+            
+                                </div>
+            
+                            </div>
+            
+                        </div>
+        
+                    </div>
+        
+                    @if ( notaVenta.liquidacionTipo?.id === 2 ) {
+        
+                        <hr style="margin: 0;">
+        
+                        <div class="tw-max-w-full tw-flex tw-flex-col tw-gap-4">
+        
+                            <div class="tw-flex tw-justify-evenly tw-gap-4">
+        
+                                @if ( vm.stateComponent === StateComponentNotaVentaComponent.create || vm.stateComponent === StateComponentNotaVentaComponent.update ) {
+
+                                    <div>
+                                        <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Tasa de Interés Diario</label>
+                                        <input type="number"
+                                            class="form-control !tw-text-xl"
+                                            [(ngModel)]="notaVenta.credito.tasaInteresDiario">
+                                    </div>
+
+                                }
+                                @else {
+
+                                    <div>
+                                        <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Tasa de Interés Diario</label>
+                                        <div>{{ Prop.toDecimal( notaVenta.credito.tasaInteresDiario ).toFixed( 2 ) }} %</div>
+                                    </div>
+
+                                }
+
+                                <div>
+                                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Capital Inicial</label>
+                                    <div>{{ Prop.toDecimal( notaVenta.credito.importeCapitalInicial ).toFixed( 2 ) }}</div>
+                                </div>
+        
+                                <div>
+                                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Interes</label>
+                                    <div>{{ Prop.toDecimal( notaVenta.credito.importeInteres ).toFixed( 2 ) }} ( {{ Prop.toDecimal( notaVenta.credito.porcentajeInteres ).toFixed( 2 ) }}% )</div>
+                                </div>
+        
+                                <div>
+                                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Capital Final</label>
+                                    <div>{{ Prop.toDecimal( notaVenta.credito.importeCapitalFinal ).toFixed( 2 ) }}</div>
+                                </div>
+        
+                            </div>
+        
+                            <div class="tw-w-full tw-flex tw-justify-center">
+                                <div class="tw-w-max tw-max-w-full tw-flex tw-flex-col tw-gap-4">
+        
+                                    @if ( vm.stateComponent === StateComponentNotaVentaComponent.create || vm.stateComponent === StateComponentNotaVentaComponent.update ) {
+        
+                                        <div class="tw-flex tw-gap-4 tw-justify-end">
+                                            <button type="button"
+                                                class="btn btn-primary !tw-text-base"
+                                                (click)="newCuotaComponent()">Agregar Cuota</button>
+                                        </div>
+                                        
+                                    }
+            
+                                    <app-table class="!tw-shadow-none !tw-p-0"
+                                        (onInit)="tableComponentCuotasOnInit( $event )"
+                                        (onSelectItem)="openCuotaComponent( StateObjectComponent.update, $event.item)"
+                                        #tableComponentCuotas/>
+        
+                                </div>
+                            </div>
+        
+        
+                        </div>
+        
+                    }
+        
+                </div>
+        
+            </app-tab-item>
+        
+            @if ( stateDocument === StateDocumentNotaVentaComponent.issued || stateDocument === StateDocumentNotaVentaComponent.canceled ) {
+        
+                <!-- TABLAS DE MOVIMIENTOS -->
+    
+                <app-tab-item title="Movimientos">
+        
+                    <div class="tw-flex tw-flex-col tw-gap-4">
+
+                        <!-- MOVIMIENTOS DE EFECTIVO -->
+                        <div class="tw-flex tw-flex-col tw-items-center tw-gap-4">
+    
+                            <app-table class="!tw-shadow-none !tw-p-0 !tw-items-start"
+                                (onInit)="movimientosEfectivoTableComponentOnInit( $event )"
+                                (onSelectItem)="openMovimientoEfectivoComponent(
+                                    vm.stateComponent === StateComponentNotaVentaComponent.create || 
+                                    vm.stateComponent === StateComponentNotaVentaComponent.update
+                                        ? StateComponentMovimientoEfectivoComponent.readMemory
+                                    : vm.stateComponent === StateComponentNotaVentaComponent.read
+                                        ? StateComponentMovimientoEfectivoComponent.readServer
+                                        : StateComponentMovimientoEfectivoComponent.none, 
+
+                                    $event.item
+                                )"
+                                (onSearchItem)="procesarMedidasMovimientoEfectivo( $event.data )"/>
+
+                            <!-- Estadísticas de movimiento de efectivo -->
+                            <div class="tw-flex tw-flex-col tw-gap-4
+                                lg:tw-grid lg:tw-grid-cols-[auto_auto_auto_auto_auto]">
+
+                                <div>
+                                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Cantidad de Movimientos:</label>
+                                    <div>{{ medidasMovimientosEfectivo.cantidadMovimientos }}</div>
+                                </div>
+
+                                <hr class="tw-m-0 lg:tw-w-[1px] lg:tw-min-h-full lg:tw-bg-black">
+
+                                <div>
+                                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Valor por Medio de Transferencia:</label>
+                                    <div>
+                                        @for ( item of Object.entries( medidasMovimientosEfectivo.cantidadPorMedioTransferencia ); track $index) {
+                                            <div class="tw-flex tw-items-center tw-gap-2">
+                                                <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">&middot; {{ item[0] }}</label>
+                                                <div>{{ item[1] }}</div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+
+                                <hr class="tw-m-0 lg:tw-w-[1px] lg:tw-min-h-full lg:tw-bg-black">
+
+                                <div>
+                                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Sumatoria de Valor:</label>
+                                    <div>{{ medidasMovimientosEfectivo.sumatoriaValor }}</div>
+                                </div>
+
+                            </div>
+    
+                        </div>
+
+                        <hr style="margin: 0;">
+
+                        <!-- MOVIMIENTOS DE PANTALLA -->
+                        <div class="tw-flex tw-justify-center">
+    
+                            <app-table class="!tw-shadow-none !tw-p-0 !tw-items-start"
+                                (onInit)="movimientosPantallaTableComponentOnInit( $event )"
+                                (onSelectItem)="openMovimientoPantallaComponent2read(
+                                    vm.stateComponent === StateComponentNotaVentaComponent.create ||
+                                    vm.stateComponent === StateComponentNotaVentaComponent.update
+                                        ? StateComponentMovimientoPantallaComponent.readMemory
+                                    : vm.stateComponent === StateComponentNotaVentaComponent.read
+                                        ? StateComponentMovimientoPantallaComponent.readServer
+                                        : StateComponentMovimientoPantallaComponent.none, 
+
+                                    $event.item
+                                )"/>
+    
+                        </div>
+
+                        <hr style="margin: 0;">
+
+                        <!-- MOVIMIENTOS DE PRODUCTO -->
+                        <div class="tw-flex tw-justify-center">
+    
+                            <app-table class="!tw-shadow-none !tw-p-0 !tw-items-start"
+                                (onInit)="movimientosProductoTableComponentOnInit( $event )"
+                                (onSelectItem)="openMovimientoProductoComponent2read(
+                                    vm.stateComponent === StateComponentNotaVentaComponent.create ||
+                                    vm.stateComponent === StateComponentNotaVentaComponent.update
+                                        ? StateComponentMovimientoProductoComponent.readMemory
+                                    : vm.stateComponent === StateComponentNotaVentaComponent.read
+                                        ? StateComponentMovimientoProductoComponent.readServer
+                                        : StateComponentMovimientoProductoComponent.none, 
+
+                                    $event.item
+                                )"/>
+    
+                        </div>
+
+                    </div>
+
+                </app-tab-item>
+        
+    
+                <!-- DOCUMENTOS RELACIONADOS -->
+    
+                <app-tab-item title="Documentos Relacionados">
+        
+                </app-tab-item>
+            }
+        
+        </app-tab>
+        
+        @if ( buttonsFooterLength > 0 ) {
+        
+            <hr style="margin: 0;">
+        
+            <app-buttons-footer [vm$]="buttonsFooterComponentVm$"/>
+            
+        }
     
     </div>
     
-    <app-tab>
-    
-        <app-tab-item title="Emisor" 
-            [active]="true">
-    
-            <div class="tw-flex tw-justify-center">
-    
-                <div class="tw-flex tw-flex-col tw-gap-4
-                    lg:tw-grid lg:tw-grid-cols-2">
-    
-                    <div>
-                        <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Concepto</label>
-                        <input type="text"
-                            class="form-control !tw-text-xl"
-                            [(ngModel)]="notaVenta.concepto">
-                    </div>
-        
-                    <div>
-                        <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Fecha Emisión</label>
-                        <input type="datetime-local"
-                            class="form-control !tw-text-xl"
-                            [(ngModel)]="notaVenta.fechaEmision">
-                    </div>
-        
-                    <div>
-                        <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Fecha Anulación</label>
-                        <input type="datetime-local"
-                            class="form-control !tw-text-xl"
-                            [(ngModel)]="notaVenta.fechaAnulacion">
-                    </div>
-    
-                </div>
-    
-            </div>
-    
-    
-        </app-tab-item>
-    
-    
-        <app-tab-item title="Receptor">
-    
-            <div class="tw-flex tw-flex-col tw-items-center tw-gap-4">
-                
-                <div class="tw-flex tw-justify-center">
-    
-                    <div class="form-check form-switch !tw-flex !tw-items-center !tw-gap-2"
-                        (click)="$event.target !== inputClienteGenerico ? ( inputClienteGenerico.checked = !inputClienteGenerico.checked ) : undefined">
-    
-                        <input type="checkbox"
-                            class="form-check-input !tw-h-5 !tw-w-10 !tw-cursor-pointer"
-                            #inputClienteGenerico>
-                        <label class="form-check-label !tw-text-base !tw-font-bold !tw-cursor-pointer">Cliente Genérico</label>
-    
-                    </div>
-    
-                </div>
-    
-                <div class="tw-flex tw-flex-col tw-gap-4
-                    lg:tw-grid lg:tw-grid-cols-2">
-    
-                    @if ( inputClienteGenerico.checked ) {
-    
-                        <div>
-                            <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Cliente</label>
-                            <input type="text"
-                                class="form-control !tw-text-xl"
-                                [(ngModel)]="notaVenta.receptorNombre">
-                        </div>
-            
-                        <div>
-                            <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Documento ID</label>
-                            <input type="text"
-                                class="form-control !tw-text-xl !tw-cursor-pointer"
-                                [ngModel]="notaVenta.receptorDocumentoIdentificacion?.nombre"
-                                (click)="selectReceptorDocumentoIdentificacion()"
-                                readonly>
-                        </div>
-            
-                        <div>
-                            <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Código ID</label>
-                            <input type="text"
-                                class="form-control !tw-text-xl"
-                                [(ngModel)]="notaVenta.receptorCodigo">
-                        </div>
-    
-                        <div>
-                            <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Celular</label>
-                            <input type="number"
-                                class="form-control !tw-text-xl"
-                                [(ngModel)]="notaVenta.receptorCelular">
-                        </div>
-    
-                    }
-                    @else {
-    
-                        <div class="tw-col-span-2">
-                            <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Cliente</label>
-                            <input type="text"
-                                class="form-control !tw-text-xl !tw-cursor-pointer"
-                                [ngModel]="notaVenta.cliente?.nombre"
-                                (click)="selectCliente()"
-                                readonly>
-                        </div>
-    
-                    }
-    
-    
-                </div>
-    
-            </div>
-    
-        </app-tab-item>
-    
-    
-        <app-tab-item title="Detalles">
-    
-            <div class="tw-flex tw-flex-col tw-items-center tw-gap-4">
-    
-                <div class="tw-flex tw-gap-4 tw-items-center">
-    
-                    <input type="text"
-                        class="form-control !tw-text-xl"
-                        [(ngModel)]="codigoElementoEconomico2search"
-                        (search)="searchElementoEconomicoPorCodigo()"
-                        placeholder="Insertar codigo de producto...">
-    
-                    <button type="button"
-                        class="btn btn-primary !tw-text-base"
-                        (click)="searchElementoEconomicoPorCodigo()">Buscar</button>
-    
-                </div>
-    
-                <div class="tw-w-full tw-flex tw-justify-center">
-                    <div class="tw-w-max tw-max-w-full tw-flex tw-flex-col tw-items-end tw-gap-4">
-    
-                        <app-table class="!tw-shadow-none !tw-p-0"
-                            [store]="storeDetalles"
-                            [vm$]="detallesTableComponentVm$"
-                            (onSelectItem)="openDetalleComponent( StateObjectComponent.update, $event.item )"/>
-    
-                        <app-table class="!tw-shadow-none !tw-p-0"
-                            [store]="storeImportes"
-                            [vm$]="importesTableComponentVm$"
-                            (onSelectItem)="openAnticipoComponent( StateObjectComponent.update, $event.item )"/>
-    
-                    </div>
-                </div>
-    
-            </div>
-    
-    
-        </app-tab-item>
-    
-    
-        <app-tab-item title="Importes">
-    
-            <div class="tw-flex tw-flex-col tw-gap-4">
-    
-                <div class="tw-flex tw-flex-col tw-gap-4
-                    lg:tw-flex-row">
-    
-                    <div class="tw-w-full tw-flex tw-justify-center">
-    
-                        <app-table class="!tw-shadow-none !tw-p-0"
-                            [store]="storeImportes"
-                            [vm$]="importesTableComponentVm$"
-                            (onSelectItem)="openAnticipoComponent( StateObjectComponent.update, $event.item )"/>
-                            
-                    </div>
-    
-        
-                    <div class="tw-w-full tw-flex tw-justify-center">
-        
-                        <div>
-        
-                            <div class="form-check"
-                                (click)="stateDocument == StateDocumentNotaVentaComponent.draftCreate || stateDocument == StateDocumentNotaVentaComponent.draftUpdate
-                                        ? selectLiquidacionTipo( 1 )
-                                        : undefined">
-        
-                                <input type="radio"
-                                    [name]="'NotaVentaComponent_' + instanceId"
-                                    class="form-check-input"
-                                    [checked]="notaVenta.liquidacionTipo?.id === 1"
-                                    [disabled]="stateDocument !== StateDocumentNotaVentaComponent.draftCreate && stateDocument !== StateDocumentNotaVentaComponent.draftUpdate && !inputRadio1.checked"
-                                    #inputRadio1>
-                                <label class="form-check-label !tw-text-base !tw-font-bold !tw-cursor-pointer">Liquidación al Contado</label>
-        
-                            </div>
-        
-        
-                            <div class="form-check"
-                                (click)="stateDocument == StateDocumentNotaVentaComponent.draftCreate || stateDocument == StateDocumentNotaVentaComponent.draftUpdate
-                                        ? selectLiquidacionTipo( 2 )
-                                        : undefined">
-        
-                                <input type="radio"
-                                    [name]="'NotaVentaComponent_' + instanceId"
-                                    class="form-check-input"
-                                    [checked]="notaVenta.liquidacionTipo?.id === 2"
-                                    [disabled]="stateDocument !== StateDocumentNotaVentaComponent.draftCreate && stateDocument !== StateDocumentNotaVentaComponent.draftUpdate && !inputRadio2.checked"
-                                    #inputRadio2>
-                                <label class="form-check-label !tw-text-base !tw-font-bold !tw-cursor-pointer">Liquidación al Crédito</label>
-        
-                            </div>
-        
-                        </div>
-        
-                    </div>
-    
-                </div>
-    
-                @if ( notaVenta.liquidacionTipo?.id === 2 ) {
-    
-                    <hr style="margin: 0;">
-    
-                    <div class="tw-max-w-full tw-flex tw-flex-col tw-gap-4">
-    
-                        <div class="tw-flex tw-justify-evenly tw-gap-4">
-    
-                            <div>
-                                <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Tasa de Interes Diario</label>
-                                <input type="number"
-                                    class="form-control !tw-text-xl"
-                                    [(ngModel)]="notaVenta.credito.tasaInteresDiario">
-                            </div>
-    
-                            <div>
-                                <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Capital Inicial</label>
-                                <div>{{ notaVenta.credito.importeCapitalInicial }}</div>
-                            </div>
-    
-                            <div>
-                                <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Interes</label>
-                                <div>{{ notaVenta.credito.importeInteres }} ( {{ notaVenta.credito.porcentajeInteres}}% )</div>
-                            </div>
-    
-                            <div>
-                                <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Capital Final</label>
-                                <div>{{ notaVenta.credito.importeCapitalFinal }}</div>
-                            </div>
-    
-                        </div>
-    
-                        <div class="tw-w-full tw-flex tw-justify-center">
-                            <div class="tw-w-max tw-max-w-full tw-flex tw-flex-col tw-gap-4">
-    
-                                @if ( stateDocument === StateDocumentNotaVentaComponent.draftCreate || stateDocument === StateDocumentNotaVentaComponent.draftUpdate ) {
-    
-                                    <div class="tw-flex tw-gap-4 tw-justify-end">
-                                        <button type="button"
-                                            class="btn btn-primary !tw-text-base"
-                                            (click)="openCuotaComponent( StateObjectComponent.create )">Agregar Cuota</button>
-                                    </div>
-                                    
-                                }
-        
-                                <app-table class="!tw-shadow-none !tw-p-0"
-                                    [store]="storeCuotas"
-                                    [vm$]="cuotasTableComponentVm$"
-                                    (onSelectItem)="openCuotaComponent( StateObjectComponent.update, $event.item )"/>
-    
-                            </div>
-                        </div>
-    
-    
-                    </div>
-    
-                }
-    
-            </div>
-    
-        </app-tab-item>
-    
-        @if ( stateDocument === StateDocumentNotaVentaComponent.issued || stateDocument === StateDocumentNotaVentaComponent.canceled ) {
-    
-            <app-tab-item title="Movimientos">
-    
-            </app-tab-item>
-    
-            <app-tab-item title="Documentos Relacionados">
-    
-            </app-tab-item>
-        }
-    
-    </app-tab>
-    
-    @if ( buttonsFooterLength > 0 ) {
-    
-        <hr style="margin: 0;">
-    
-        <app-buttons-footer [vm$]="buttonsFooterComponentVm$"/>
-        
-    }
+    <app-collection-nota class="!tw-w-full !tw-max-h-[90vh]"
+        [storeNotas]="storeNotas"
+        (onCreate)="agregarNota( $event.nota )"
+        (onDelete)="eliminarNota( $event.nota )"/>
 
-</div>
-
-<app-collection-nota class="!tw-w-full !tw-max-h-[90vh]"
-    [storeNotas]="storeNotas"
-    (onCreate)="agregarNota( $event.nota )"
-    (onDelete)="eliminarNota( $event.nota )"/>
+}

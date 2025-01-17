@@ -1,4 +1,4 @@
-import { ApplicationRef, ChangeDetectorRef, Component, ComponentRef, createComponent, Directive, ElementRef, EnvironmentInjector, inject, Injectable, Injector, Input, Renderer2, Type, ViewChild, ViewContainerRef } from "@angular/core";
+import { ComponentRef, createComponent, Directive, EnvironmentInjector, inject, Injectable, Injector, Input, Renderer2, Type, ViewContainerRef } from "@angular/core";
 import { BehaviorSubject, distinctUntilChanged, Observable, Subscription } from "rxjs";
 import { IComponent } from "../interfaces/IComponent";
 
@@ -8,11 +8,10 @@ import { IComponent } from "../interfaces/IComponent";
 })
 export class OverlayService {
 
-    private appRef = inject( ApplicationRef );
     private envInject = inject( EnvironmentInjector );
     private injector = inject( Injector );
-     components: Array<{ container: ComponentRef<OverlayContainerComponent>, ref: ComponentRef<any> }> = []; 
-    public component$ = new BehaviorSubject<ComponentRef<OverlayContainerComponent>|undefined>( undefined );
+    private components: Array<{ componentRef: ComponentRef<any> }> = []; 
+    public component$ = new BehaviorSubject<ComponentRef<IComponent<any>>|undefined>( undefined );
 
     
     open<T extends IComponent<any>>(component: Type<T> ): Observable<T>
@@ -33,15 +32,8 @@ export class OverlayService {
                     error: ( error: any ) => o.error( error )
                 }));
         
-                const containerRef = createComponent( OverlayContainerComponent, {
-                    environmentInjector: this.envInject,
-                    elementInjector: this.injector
-                } );
-        
-                containerRef.instance.componentRef = componentRef;
-        
-                this.components.push({ container: containerRef, ref: componentRef });
-                this.component$.next( containerRef );
+                this.components.push({ componentRef });
+                this.component$.next( componentRef );
             }
             catch ( error ) {
                 o.error( error );
@@ -54,14 +46,14 @@ export class OverlayService {
 
     close( instance: IComponent<any> ): void 
     {
-        const index = this.components.findIndex( c => c.ref.instance === instance );
+        const index = this.components.findIndex( c => c.componentRef.instance === instance );
     
         if (index !== -1) {
-            this.components[ index ].container.destroy();
+            this.components[ index ].componentRef.destroy();
             this.components.splice( index, 1 );
 
             const lastComponent = this.components.length
-                                    ? this.components[this.components.length - 1].container
+                                    ? this.components[this.components.length - 1].componentRef
                                     : undefined;
 
             this.component$.next( lastComponent );
@@ -70,52 +62,17 @@ export class OverlayService {
 
 
     clear(): void {
-        this.components.reverse().forEach( c => c.container.destroy() );
+        this.components.reverse().forEach( c => c.componentRef.destroy() );
         this.components = [];
     }
     
 
     isOverlay( instance: any ): boolean
     {
-        const i = this.components.map( c => c.ref.instance ).indexOf( instance );
+        const i = this.components.map( c => c.componentRef.instance ).indexOf( instance );
         return i === -1 ? false : true;
     }
 
-}
-
-
-@Component({
-    selector: 'overlay-container',
-    template: '<ng-container #vcr></ng-container>',
-    styles: [`
-        :host {
-            width: 100%;
-            height: 100%;
-            max-width: 100%;
-            max-height: 100%;
-            
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-        }
-    `]
-})
-class OverlayContainerComponent
-{
-    @Input() componentRef?: ComponentRef<any>;
-    @ViewChild( 'vcr', {read: ViewContainerRef} ) vcr?: ViewContainerRef;
-    cd = inject( ChangeDetectorRef );
-
-    ngAfterViewInit()
-    {
-        if ( this.componentRef ) this.vcr?.insert( this.componentRef.hostView );
-        this.cd.detectChanges();
-    }
-
-    ngOnDestroy()
-    {
-        console.log( 'overlay container destruido' );
-    }
 }
 
 

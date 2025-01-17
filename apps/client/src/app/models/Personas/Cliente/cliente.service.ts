@@ -114,14 +114,14 @@ export class ClienteService {
 
                 c.sub.add( c.onClose.subscribe( () => overlayService.close( c ) ) );
 
-                c.sub.add( c.onSelectItem.subscribe( e => {
-                    this.openClienteComponent( c.store.storeFromThis( () => e.item ), overlayService )
-                    .subscribe();
-                } ) );
-
                 c.sub.add( c.onAddItem.subscribe( e => {
                     this.openObjectComponent( c.store, c.store.storeFromThis( () => new Cliente() ), overlayService )
                     .subscribe( oc => oc.vm$.next({ ...oc.vm$.value, state: StateObjectComponent.create }) )
+                } ) );
+
+                c.sub.add( c.onSelectItem.subscribe( e => {
+                    this.openClienteComponent( c.store.storeFromThis( () => e.item ), overlayService )
+                    .subscribe();
                 } ) );
 
             } )
@@ -157,6 +157,8 @@ export class ClienteService {
             tap( c => {
 
                 c.storeCliente = store;
+                
+                c.overlayService = overlayService;
 
                 c.sub.add( c.onClose.subscribe( () => overlayService.close( c ) ) );
 
@@ -174,8 +176,8 @@ export class ClienteService {
                 c.store = store;
 
                 c.vm$.next({
+                    ...c.vm$.value,
                     title: 'Cliente',
-                    isCloseActive: true,
                     state: StateObjectComponent.read,
                     bindingProperties: [
                         { title: 'Id', getValue: item => item.id, behavior: PropBehavior.number },

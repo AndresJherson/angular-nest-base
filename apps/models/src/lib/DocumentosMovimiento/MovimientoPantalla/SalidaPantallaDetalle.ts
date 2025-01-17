@@ -1,12 +1,11 @@
-import { Prop, PropBehavior } from "../../Model";
-import { MovimientoPantalla } from "./MovimientoPantalla";
-import { MovimientoPantallaDetalle } from "./MovimientoPantallaDetalle";
-import { SalidaPantalla } from "./SalidaPantalla";
+import { MovimientoPantallaDetalle, Prop, PropBehavior, SalidaPantalla } from '../../../index';
 
 @Prop.Class()
 export class SalidaPantallaDetalle extends MovimientoPantallaDetalle
 {
+    static override type = 'SalidaPantallaDetalle';
     @Prop.Set( PropBehavior.model, () => SalidaPantalla ) declare documentoMovimiento?: SalidaPantalla;
+    @Prop.Set() override type: string = SalidaPantallaDetalle.type;
     
 
     constructor( json?: Partial<SalidaPantallaDetalle> )

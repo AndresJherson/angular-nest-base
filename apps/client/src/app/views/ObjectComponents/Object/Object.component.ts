@@ -1,4 +1,4 @@
-import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
+import { Component, EventEmitter, HostBinding, inject, Input, Output } from '@angular/core';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { IComponent } from '../../../interfaces/IComponent';
 import { BehaviorSubject, Subscription } from 'rxjs';
@@ -32,10 +32,14 @@ export class ObjectComponent<T extends ItemType> implements IComponent<ObjectCom
 
     @Input() vm$ = new BehaviorSubject<ObjectComponentVm<T>>({
         title: '',
-        isCloseActive: true,
+        classesCss: '',
+        isCloseButtonActive: true,
+        isReadButtonActive: true,
         state: StateObjectComponent.read,
         bindingProperties: []
     });
+
+    @HostBinding( 'class' ) hostClasses: string = '';
 
     buttonsMenuComponentVm$ = new BehaviorSubject<ButtonsMenuComponentVm>({
         buttons: []
@@ -53,8 +57,9 @@ export class ObjectComponent<T extends ItemType> implements IComponent<ObjectCom
     @Output() readonly onCreate = new EventEmitter<ObjectComponentEventData<T>>();
     @Output() readonly onUpdate = new EventEmitter<ObjectComponentEventData<T>>();
     @Output() readonly onDelete = new EventEmitter<ObjectComponentEventData<T>>();
+    
     @Output() readonly onRead = new EventEmitter<ObjectComponentEventData<T>>();
-    @Output() readonly onCancelWrite = new EventEmitter<ObjectComponentEventData<T>>();
+    @Output() readonly onCancelUpdate = new EventEmitter<ObjectComponentEventData<T>>();
 
     sub = new Subscription();
     modalService = inject( ModalService );
@@ -125,14 +130,7 @@ export class ObjectComponent<T extends ItemType> implements IComponent<ObjectCom
                 {
                     class: BUTTON_CLASS_BOOTSTRAP.secondary,
                     title: 'Cancelar',
-                    onClick: e => {
-                        this.onCancelWrite.emit({
-                            event: e,
-                            sender: this,
-                            item: this.item
-                        });
-                        this.close( e )
-                    }
+                    onClick: e => this.close( e )
                 },
                 {
                     class: BUTTON_CLASS_BOOTSTRAP.primary,
@@ -154,16 +152,20 @@ export class ObjectComponent<T extends ItemType> implements IComponent<ObjectCom
                     class: BUTTON_CLASS_BOOTSTRAP.secondary,
                     title: 'Cancelar',
                     onClick: e => {
-                        this.store.getRead().subscribe();
-                        this.vm$.next({
-                            ...this.vm$.value,
-                            state: StateObjectComponent.read
-                        });
-                        this.onCancelWrite.emit({
-                            event: e,
-                            sender: this,
-                            item: this.item
-                        });
+                        this.store.getRead().subscribe( () => {
+
+                            this.vm$.next({
+                                ...this.vm$.value,
+                                state: StateObjectComponent.read
+                            });
+
+                            this.onCancelUpdate.emit({
+                                event: e,
+                                sender: this,
+                                item: this.item
+                            });
+                            
+                        } );
                     }
                 },
                 {
@@ -196,6 +198,8 @@ export class ObjectComponent<T extends ItemType> implements IComponent<ObjectCom
 
         this.sub.add( this.vm$.subscribe( vm => {
 
+            this.hostClasses = vm.classesCss ?? '';
+
             if ( vm.state === StateObjectComponent.read ) {
 
                 this.buttonsMenu2read();
@@ -218,13 +222,6 @@ export class ObjectComponent<T extends ItemType> implements IComponent<ObjectCom
         } ) );
 
         this.sub.add( this.store.error$.subscribe( error => this.modalService.open( MessageBoxComponent ).subscribe( c => c.mensaje = error ) ) );
-    }
-
-    getTitle( title: ObjectComponentVm<T>['title'] )
-    {
-        title instanceof Function
-            ? title( this.store.getState() )
-            : title
     }
 
 
@@ -252,21 +249,33 @@ export class ObjectComponent<T extends ItemType> implements IComponent<ObjectCom
 
     create( e: Event )
     {
-        this.onCreate.emit({
-            event: e,
-            sender: this,
-            item: this.item
-        });
+        try {
+            this.verifyRequired();
+            this.onCreate.emit({
+                event: e,
+                sender: this,
+                item: this.item
+            });
+        }
+        catch ( error: any ) {
+            this.modalService.open( MessageBoxComponent ).subscribe( c => c.mensaje = error.message );
+        }
     }
 
 
     update( e: Event )
     {
-        this.onUpdate.emit({
-            event: e,
-            sender: this,
-            item: this.item
-        });
+        try {
+            this.verifyRequired();
+            this.onUpdate.emit({
+                event: e,
+                sender: this,
+                item: this.item
+            });
+        }
+        catch ( error: any ) {
+            this.modalService.open( MessageBoxComponent ).subscribe( c => c.mensaje = error.message );
+        }
     }
 
 
@@ -294,6 +303,23 @@ export class ObjectComponent<T extends ItemType> implements IComponent<ObjectCom
                     }
                 },
             ];
+
+        } )
+    }
+
+
+    verifyRequired()
+    {
+        this.vm$.value.bindingProperties.forEach( bind => {
+
+            if (
+                bind.setValue &&
+                ( bind.getValue( this.item, true ) === undefined || 
+                ( bind.getValue( this.item, true ) !== undefined && bind.getValue( this.item, true ) !== null && String( bind.getValue( this.item, true ) ).trim().length === 0 ) ) &&
+                bind.required
+            ) {
+                throw new Error ( `El campo ${ bind.title } es requerido!` )
+            }
 
         } )
     }
@@ -330,7 +356,7 @@ export enum StateObjectComponent
 export interface BindingPropertyObjectComponent<T extends ItemType>
 {
     title: string;
-    getValue?: ( item: T, object?: boolean ) => T[keyof T] | undefined;
+    getValue: ( item: T, original?: boolean ) => T[keyof T] | undefined;
     setValue?: ( item: T, value?: any ) => void;
     readonly?: boolean;
     required?: boolean;
@@ -341,8 +367,10 @@ export interface BindingPropertyObjectComponent<T extends ItemType>
 
 export interface ObjectComponentVm<T extends ItemType>
 {
-    title: String | ( ( item: T ) => T[keyof T] );
-    isCloseActive: boolean;
+    title: string;
+    classesCss?: string;
+    isCloseButtonActive: boolean;
+    isReadButtonActive: boolean;
     state: StateObjectComponent;
     bindingProperties: BindingPropertyObjectComponent<T>[];
 }

@@ -14,7 +14,7 @@ export class HttpService {
 
     post<T>( body: HttpBody ): Observable<T>
     {
-        return this.modalService.open( LoaderComponent, true ).pipe(
+        return this.modalService.open( LoaderComponent, false ).pipe(
             switchMap( l => {
 
                 const headers = new HttpHeaders({

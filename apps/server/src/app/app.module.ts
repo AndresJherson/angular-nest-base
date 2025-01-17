@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ClienteService } from './models/Personas/Cliente/cliente.service';
-import { ElementoEconomicoService } from './models/ElementosEconomicos/elemento-economico.service';
 import { DocumentoIdentificacionService } from './models/Personas/documento-identificacion.service';
+import { ElementoEconomicoService } from './models/ElementosEconomicos/elemento-economico.service';
 import { ConectorService } from './services/conector.service';
 import { GeneroService } from './models/Personas/genero.service';
 import { UsuarioService } from './models/Personas/Usuario/usuario.service';
@@ -25,6 +25,11 @@ import { ServicioCategoriaService } from './models/ElementosEconomicos/Servicio/
 import { PantallaMarcaService } from './models/ElementosEconomicos/Bien/Pantalla/pantalla-marca.service';
 import { PantallaModeloService } from './models/ElementosEconomicos/Bien/Pantalla/pantalla-modelo.service';
 import { CalidadService } from './models/ElementosEconomicos/Bien/Pantalla/calidad.service';
+import { DocumentoMovimientoService } from './models/DocumentosMovimiento/documento-movimiento.service';
+import { MedioTransferenciaService } from './models/DocumentosMovimiento/medio-transferencia.service';
+import { SessionService } from './services/session.service';
+import { DocumentoTransaccionService } from './models/DocumentosTransaccion/documento-transaccion.service';
+import { KardexService } from './models/ElementosEconomicos/Bien/Inventario/kardex.service';
 
 @Module({
   imports: [],
@@ -55,6 +60,11 @@ import { CalidadService } from './models/ElementosEconomicos/Bien/Pantalla/calid
     PantallaMarcaService,
     PantallaModeloService,
     CalidadService,
+    DocumentoMovimientoService,
+    MedioTransferenciaService,
+    SessionService,
+    DocumentoTransaccionService,
+    KardexService,
   ],
 })
 export class AppModule {}

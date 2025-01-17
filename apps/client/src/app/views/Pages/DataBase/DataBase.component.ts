@@ -19,6 +19,12 @@ import { CalidadService } from '../../../models/ElementosEconomicos/Bien/Pantall
 import { PantallaModeloCalidadService } from '../../../models/ElementosEconomicos/Bien/Pantalla/pantalla-modelo-calidad.service';
 import { ServicioCategoriaService } from '../../../models/ElementosEconomicos/Servicio/servicio-categoria.service';
 import { ServicioService } from '../../../models/ElementosEconomicos/Servicio/servicio.service';
+import { NotaVentaService } from '../../../models/DocumentosTransaccion/NotaVenta/nota-venta.service';
+import { MovimientoEfectivoService } from '../../../models/DocumentosMovimiento/MovimientoEfectivo/movimiento-efectivo.service';
+import { MedioTransferenciaService } from '../../../models/DocumentosMovimiento/medio-transferencia.service';
+import { DocumentoTransaccionService } from '../../../models/DocumentosTransaccion/documento-transaccion.service';
+import { MovimientoProductoService } from '../../../models/DocumentosMovimiento/MovimientoProducto/movimiento-producto.service';
+import { MovimientoPantallaService } from '../../../models/DocumentosMovimiento/MovimientoPantalla/movimiento-pantalla.service';
 
 @Component({
   selector: 'app-data-base',
@@ -136,6 +142,48 @@ export class DataBaseComponent implements IComponent<DataBaseComponent> {
         {
             title: 'Categorias de Servicio',
             onClick: dbc => this.servicioCategoriaService.openTableComponent( this.overlayService ).subscribe()
+        },
+    ];
+
+
+    documentoTransaccionService = inject( DocumentoTransaccionService );
+    notaVentaService = inject( NotaVentaService );
+    tablesDocumentosTransaccion: TableDataBaseComponent[]= [
+        {
+            title: 'Documentos de Transacción',
+            onClick: dbc => this.documentoTransaccionService.openTableComponent( this.overlayService ).subscribe()
+        },
+        {
+            title: 'Notas de Venta',
+            onClick: dbc => this.notaVentaService.openTableComponent( this.overlayService ).subscribe(),
+            principal: true
+        }
+    ];
+
+
+    movimientoEfectivoService = inject( MovimientoEfectivoService );
+    movimientoPantallaService = inject( MovimientoPantallaService );
+    movimientoProductoService = inject( MovimientoProductoService );
+    medioTransferenciaService = inject( MedioTransferenciaService );
+    tablesDocumentosMovimiento: TableDataBaseComponent[] = [
+        {
+            title: 'Movimientos de Efectivo',
+            onClick: dbc => this.movimientoEfectivoService.openTableComponent( this.overlayService ).subscribe(),
+            principal: true
+        },
+        {
+            title: 'Medio de Transferencia',
+            onClick: dbc => this.medioTransferenciaService.openTableComponent( this.overlayService ).subscribe()
+        },
+        {
+            title: 'Movimientos de Pantalla',
+            onClick: dbc => this.movimientoPantallaService.openTableComponent( this.overlayService ).subscribe(),
+            principal: true
+        },
+        {
+            title: 'Movimientos de Producto',
+            onClick: dbc => this.movimientoProductoService.openTableComponent( this.overlayService ).subscribe(),
+            principal: true
         },
     ];
 

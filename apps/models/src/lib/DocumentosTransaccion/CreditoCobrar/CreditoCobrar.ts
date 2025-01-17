@@ -1,11 +1,12 @@
-import { Prop, PropBehavior } from "../../Model";
-import { Credito } from "../Credito";
-import { Cuota } from "../Cuota";
-import { CuotaCobrar } from "./CuotaCobrar";
+import { Credito, CuotaCobrar, Prop, PropBehavior } from '../../../index';
 
+@Prop.Class()
 export class CreditoCobrar extends Credito
 {
-    @Prop.Set( PropBehavior.array, () => CuotaCobrar ) override cuotas: CuotaCobrar[] = []
+    static override type = 'CreditoCobrar';
+    @Prop.Set() override type: string = CreditoCobrar.type;
+    
+    @Prop.Set( PropBehavior.array, () => CuotaCobrar ) override cuotas: CuotaCobrar[] = [];
     
 
     constructor( json?: Partial<CreditoCobrar> )

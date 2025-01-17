@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConectorService } from '../../../services/conector.service';
 import { SessionData } from '../../../interfaces/interfaces';
-import { Magnitud } from 'apps/models/src/lib/ElementosEconomicos/Bien/Magnitud';
+import { Magnitud } from '@app/models';
 import { ERROR_CRUD } from '../../../interfaces/constants';
 import { SQLBuilder } from '../../../services/SQLBuilder';
 import { AppService } from '../../../app.service';

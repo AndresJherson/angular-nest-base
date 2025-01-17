@@ -1,10 +1,10 @@
-import { Prop } from "../../Model";
-import { MovimientoEfectivo } from "./MovimientoEfectivo";
+import { MovimientoEfectivo, Prop } from "../../../index";
 
 @Prop.Class()
 export class SalidaEfectivo extends MovimientoEfectivo
 {
-    @Prop.Set() override type: string = SalidaEfectivo.name;
+    static override type = 'SalidaEfectivo';
+    @Prop.Set() override type: string = SalidaEfectivo.type;
 
     
     constructor( json?: Partial<SalidaEfectivo> )

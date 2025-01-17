@@ -1,12 +1,11 @@
-import { Prop, PropBehavior } from "../../Model";
-import { EntradaProductoDetalle } from "./EntradaProductoDetalle";
-import { MovimientoProducto } from "./MovimientoProducto";
+import { EntradaProductoDetalle, MovimientoProducto, Prop, PropBehavior } from '../../../index';
 
 @Prop.Class()
 export class EntradaProducto extends MovimientoProducto
 {
+    static override type = 'EntradaProducto';
     @Prop.Set( PropBehavior.array, () => EntradaProductoDetalle ) override detalles: EntradaProductoDetalle[] = [];
-    @Prop.Set() override type = EntradaProducto.name;
+    @Prop.Set() override type = EntradaProducto.type;
 
     constructor( json?: Partial<EntradaProducto> )
     {

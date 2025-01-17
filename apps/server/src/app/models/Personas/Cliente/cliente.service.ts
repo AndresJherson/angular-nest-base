@@ -2,7 +2,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConectorService } from '../../../services/conector.service';
 import { SessionData } from '../../../interfaces/interfaces';
 import { ERROR_CRUD } from '../../../interfaces/constants';
-import { Cliente } from '../../../../../../models/src/lib/Personas/Cliente/Cliente';
+import { Cliente } from '@app/models';
 import { AppService } from '../../../app.service';
 import { SQLBuilder } from '../../../services/SQLBuilder';
 

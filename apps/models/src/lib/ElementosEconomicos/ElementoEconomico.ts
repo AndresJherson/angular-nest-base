@@ -1,16 +1,18 @@
-import { Model, Prop } from "../Model";
+import { Model, Prop } from '../../index';
 
 @Prop.Class()
 export class ElementoEconomico extends Model
 {
+    static override type = 'ElementoEconomico';
+    @Prop.Set() type: string = ElementoEconomico.type;
+
     @Prop.Set() uuid?: string;
     @Prop.Set() codigo?: string;
     @Prop.Set() nombre?: string;
     @Prop.Set() magnitudNombre?: string;
-    @Prop.Set() categoria?: string;
+    @Prop.Set() categoriaNombre?: string;
     @Prop.Set() precioUnitario: number = 0;
     @Prop.Set() esSalida: boolean = false;
-    @Prop.Set() type: string = ElementoEconomico.name;
 
 
     constructor( item?: Partial<ElementoEconomico> )
@@ -20,12 +22,12 @@ export class ElementoEconomico extends Model
     }
 
 
-    static initializeCollection( collection: any[] ): ElementoEconomico[]
+    static initialize( data: Partial<ElementoEconomico>[] ): ElementoEconomico[]
     {
-        return collection.map( item => 
-            new(
-                Prop.GetClass<ElementoEconomico>( Object.getPrototypeOf( item ) )
-                ?? Prop.GetClass<ElementoEconomico>( item.type )
+        return data.map( item => 
+            new (
+                Prop.GetClass<ElementoEconomico>( item.type )
+                ?? Prop.GetClass( Object.getPrototypeOf( item ) )
                 ?? ElementoEconomico
             )( item )
         );

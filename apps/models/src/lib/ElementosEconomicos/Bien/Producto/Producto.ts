@@ -1,10 +1,10 @@
-import { Bien } from "../Bien";
-import { Prop } from "../../../Model";
+import { Bien, Prop } from "../../../../index";
 
 @Prop.Class()
 export class Producto extends Bien
 {
-    @Prop.Set() override type: string = Producto.name;
+    static override type = 'Producto';
+    @Prop.Set() override type: string = Producto.type;
 
 
     constructor( json?: Partial<Producto> )

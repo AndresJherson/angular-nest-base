@@ -10,11 +10,12 @@
         
             @for ( bind of vm.buttons; track $index) {
         
-                <div class="tw-min-h-[30px] tw-flex tw-items-center tw-gap-2 tw-px-2 tw-cursor-pointer tw-text-base hover:tw-bg-gray-200" 
+                <div class="tw-min-h-[30px] tw-flex tw-items-center tw-gap-2 tw-p-2 tw-cursor-pointer tw-text-base 
+                    hover:tw-bg-gray-200"
                     (click)="executeAction( $event, bind )">
         
                     <i class="bi bi-chevron-right"></i>
-                    <div class="titulo">{{ bind.title }}</div>
+                    <div>{{ bind.title }}</div>
         
                 </div>
         

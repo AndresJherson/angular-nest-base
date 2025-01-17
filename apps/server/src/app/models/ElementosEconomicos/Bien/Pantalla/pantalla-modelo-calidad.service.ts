@@ -2,10 +2,11 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ERROR_CRUD } from 'apps/server/src/app/interfaces/constants';
 import { SessionData } from 'apps/server/src/app/interfaces/interfaces';
 import { ConectorService } from 'apps/server/src/app/services/conector.service';
-import { PantallaModeloCalidad } from '../../../../../../../models/src/lib/ElementosEconomicos/Bien/Pantalla/PantallaModeloCalidad';
+import { PantallaModeloCalidad } from '@app/models';
 import { v4 } from 'uuid';
 import { SQLBuilder } from 'apps/server/src/app/services/SQLBuilder';
 import { AppService } from 'apps/server/src/app/app.service';
+import { KardexService } from '../Inventario/kardex.service';
 
 @Injectable()
 export class PantallaModeloCalidadService {
@@ -15,6 +16,20 @@ export class PantallaModeloCalidadService {
             'id', pantalla_modelo_calidad.id,
             'uuid', elemento_economico.uuid,
             'codigo', elemento_economico.codigo,
+            'nombre', (
+                select
+                    concat(
+                        pantalla_marca.nombre, ' ',
+                        pantalla_modelo.nombre, ' ',
+                        calidad.nombre
+                    ) as nombre
+                from pantalla_modelo 
+                left join pantalla_marca on pantalla_marca.id = pantalla_modelo.pantalla_marca_id
+                left join calidad on calidad.id = pantalla_modelo_calidad.calidad_id
+                where pantalla_modelo.id = pantalla_modelo_calidad.pantalla_modelo_id
+            ),
+            'magnitudNombre', 'uni',
+            'categoriaNombre', 'pantallas',
             'pantallaModelo', (
                 select json_object(
                     'id', pantalla_modelo.id,
@@ -48,7 +63,8 @@ export class PantallaModeloCalidadService {
 
     constructor(
         private conectorService: ConectorService,
-        private appService: AppService
+        private appService: AppService,
+        private kardexService: KardexService
     )
     {
         this.appService.register({
@@ -57,7 +73,8 @@ export class PantallaModeloCalidadService {
                 getItem: s => this.getItem( s, new PantallaModeloCalidad( s.json.pantallaModeloCalidad ) ),
                 createItem: s => this.createItem( s, new PantallaModeloCalidad( s.json.pantallaModeloCalidad ) ),
                 updateItem: s => this.updateItem( s, new PantallaModeloCalidad( s.json.pantallaModeloCalidad ) ),
-                deleteItem: s => this.deleteItem( s, new PantallaModeloCalidad( s.json.pantallaModeloCalidad ) )
+                deleteItem: s => this.deleteItem( s, new PantallaModeloCalidad( s.json.pantallaModeloCalidad ) ),
+                kardexMetodoPromedio: s => this.kardexMetodoPromedio( s, new PantallaModeloCalidad( s.json.pantallaModeloCalidad ) )
             }
         });
     }
@@ -188,5 +205,12 @@ export class PantallaModeloCalidadService {
             affectedRows1 === 0 &&
             affectedRows2 === 0
         ) throw new InternalServerErrorException( ERROR_CRUD.DELETE );
+    }
+    
+
+    async kardexMetodoPromedio( s: SessionData, pantallaModeloCalidad: PantallaModeloCalidad )
+    {
+        const pantallaModeloCalidad2send = await this.getItem( s, pantallaModeloCalidad );
+        return await this.kardexService.metodoPromedio( s, pantallaModeloCalidad2send )
     }
 }

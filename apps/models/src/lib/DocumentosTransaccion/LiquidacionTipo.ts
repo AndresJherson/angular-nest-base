@@ -1,7 +1,9 @@
-import { Model, Prop } from "../Model";
+import { Model, Prop } from '../../index';
 
+@Prop.Class()
 export class LiquidacionTipo extends Model
 {
+    static override type = 'LiquidacionTipo';
     @Prop.Set() nombre?: string;
     
 

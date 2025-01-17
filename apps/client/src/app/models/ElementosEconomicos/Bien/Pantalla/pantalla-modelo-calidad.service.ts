@@ -7,17 +7,18 @@ import { StateRowTableComponent, TableComponent, TableComponentVm } from 'apps/c
 import { MessageBoxComponent } from 'apps/client/src/app/views/Components/MessageBox/MessageBox.component';
 import { ObjectComponent, StateObjectComponent } from 'apps/client/src/app/views/ObjectComponents/Object/Object.component';
 import { PantallaModeloCalidad } from 'apps/models/src/lib/ElementosEconomicos/Bien/Pantalla/PantallaModeloCalidad';
-import { PropBehavior } from 'apps/models/src/lib/Model';
+import { Kardex, Prop, PropBehavior } from '@app/models';
 import { map, tap } from 'rxjs';
 import { PantallaModeloService } from './pantalla-modelo.service';
 import { CalidadService } from './calidad.service';
+import { PantallaModeloCalidadComponent } from 'apps/client/src/app/views/ObjectComponents/ElementosEconomicos/PantallaModeloCalidad/PantallaModeloCalidad.component';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PantallaModeloCalidadService {
 
-    serviceName = 'pantallaModeoCalidad';
+    serviceName = 'pantallaModeloCalidad';
     httpService = inject( HttpService );
     modalService = inject( ModalService );
     pantallaModeloService = inject( PantallaModeloService );
@@ -77,14 +78,24 @@ export class PantallaModeloCalidadService {
     }
 
 
+    kardexMetodoPromedio( pantallaModeloCalidad: PantallaModeloCalidad )
+    {
+        return this.httpService.post<Kardex<PantallaModeloCalidad>>({
+            service: this.serviceName,
+            method: 'kardexMetodoPromedio',
+            values: { pantallaModeloCalidad }
+        })
+        .pipe( map( item => new Kardex<PantallaModeloCalidad>( item ) ) );
+    }
+
+
     tableBindingProperties: TableComponentVm<PantallaModeloCalidad>['bindingProperties'] = [
         { title: 'Id', getValue: item => item.id, behavior: PropBehavior.number },
-        { title: 'Uuid', getValue: item => item.uuid, behavior: PropBehavior.string },
         { title: 'Código', getValue: item => item.codigo, behavior: PropBehavior.string },
-        { title: 'Modelo', getValue: item => item.nombre, behavior: PropBehavior.string },
+        { title: 'Modelo', getValue: item => item.pantallaModelo?.nombre, behavior: PropBehavior.string },
         { title: 'Marca', getValue: item => item.pantallaModelo?.pantallaMarca?.nombre, behavior: PropBehavior.string },
         { title: 'Calidad', getValue: item => item.calidad?.nombre, behavior: PropBehavior.string },
-        { title: 'Precio Uni.', getValue: item => item.precioUnitario, behavior: PropBehavior.number },
+        { title: 'Precio Uni.', getValue: item => Prop.toDecimal( item.precioUnitario ).toFixed( 2 ), behavior: PropBehavior.number },
     ];
 
 
@@ -118,8 +129,8 @@ export class PantallaModeloCalidadService {
                 ) );
 
                 c.sub.add( c.onSelectItem.subscribe( e => 
-                    this.openObjectComponent( c.store, c.store.storeFromThisAsync( e.item, this.getItem( e.item ) ) )
-                    .subscribe( oc => oc.vm$.next({ ...oc.vm$.value, state: StateObjectComponent.read }) )
+                    this.openPantallaModeloCalidadComponent( c.store.storeFromThis( () => e.item ), overlayService )
+                    .subscribe()
                 ) );
 
             } )
@@ -148,6 +159,22 @@ export class PantallaModeloCalidadService {
     }
 
 
+    openPantallaModeloCalidadComponent( store: ComponentStore<PantallaModeloCalidad>, overlayService: OverlayService )
+    {
+        return overlayService.open( PantallaModeloCalidadComponent ).pipe(
+            tap( c => {
+
+                c.storePantallaModeloCalidad = store;
+
+                c.overlayService = overlayService;
+
+                c.sub.add( c.onClose.subscribe( () => overlayService.close( c ) ) );
+
+            } )
+        )
+    }
+
+
     openObjectComponent( parentStore: ComponentStore<PantallaModeloCalidad[]>, store: ComponentStore<PantallaModeloCalidad> )
     {
         return this.modalService.open( ObjectComponent<PantallaModeloCalidad> )
@@ -157,8 +184,8 @@ export class PantallaModeloCalidadService {
                 c.store = store;
 
                 c.vm$.next({
+                    ...c.vm$.value,
                     title: 'Pantalla',
-                    isCloseActive: true,
                     state: StateObjectComponent.read,
                     bindingProperties: [
                         { title: 'Id', getValue: item => item.id, behavior: PropBehavior.number },

@@ -1,0 +1,155 @@
+@if ( vm$ | async; as vm ) {
+
+    @if ( vm.isHeadActive ) {
+
+        <div class="tw-flex tw-justify-between tw-gap-4">
+        
+            <div class="tw-flex tw-items-center tw-gap-2">
+        
+                @if ( vm.isCloseButtonActive ) {
+                    <i class="bi bi-arrow-bar-left btn btn-light !tw-text-base !tw-shadow" 
+                        (click)="close( $event )"></i>
+                }
+        
+                <h4>{{ vm.title }}</h4>
+        
+            </div>
+    
+    
+            <app-buttons-menu [vm$]="buttonsMenuComponentVm$"/>
+        
+        </div>
+        
+    }
+    
+    
+    <div class="tw-flex tw-justify-center tw-overflow-auto tw-max-h-full">
+    
+        <div class="tw-flex tw-flex-col tw-gap-4 tw-w-full
+            lg:tw-grid lg:tw-grid-cols-2">
+    
+            @if ( 
+                vm.stateComponent === StateComponentMovimientoProductoComponent.readMemory || 
+                vm.stateComponent === StateComponentMovimientoProductoComponent.readServer || 
+                vm.stateComponent === StateComponentMovimientoProductoComponent.none 
+            ) {
+
+                <!-- IDENTIFICACION -->
+                <div>
+                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Codigo</label>
+                    <div>{{ movimientoProducto.codigo ?? '-' }}</div>
+                </div>
+
+                <div class="lg:tw-col-span-2">
+                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Concepto</label>
+                    <div>{{ movimientoProducto.concepto ?? '-' }}</div>
+                </div>
+
+                <div>
+                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Fecha Emisión</label>
+                    <div>{{ Prop.toDateTime( movimientoProducto.fechaEmision ).isValid ? Prop.toDateTime( movimientoProducto.fechaEmision).toFormat( 'dd/MM/yyyy HH:mm' ) : '-' }}</div>
+                </div>
+
+                <div>
+                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Fecha Anulación</label>
+                    <div>{{ Prop.toDateTime( movimientoProducto.fechaAnulacion ).isValid ? Prop.toDateTime( movimientoProducto.fechaAnulacion ).toFormat( 'dd/MM/yyyy HH:mm' ) : '-' }}</div>
+                </div>
+
+                <div>
+                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Usuario Emisor</label>
+                    <div>{{ movimientoProducto.usuario?.nombre ?? '-' }}</div>
+                </div>
+
+                <div class="lg:tw-col-span-2">
+                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Importe Neto</label>
+                    <div>{{ Prop.toDecimal( movimientoProducto.importeNeto ).toFixed( 2 ) }}</div>
+                </div>
+                
+                @if ( vm.isAttached ) {
+                    <div class="lg:tw-col-span-2">
+                        <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Documento de Transaccion</label>
+                        <div>{{ 
+                            movimientoProducto.documentoTransaccion?.codigoSerie !== undefined && 
+                            movimientoProducto.documentoTransaccion?.codigoSerie !== null &&
+                            movimientoProducto.documentoTransaccion?.codigoNumero !== undefined && 
+                            movimientoProducto.documentoTransaccion?.codigoNumero !== null
+                            ? ( movimientoProducto.documentoTransaccion?.codigoSerie + '-' + movimientoProducto.documentoTransaccion?.codigoNumero )
+                            : '-'
+                        }}</div>
+                    </div>
+                }
+
+            }
+            @else {
+                
+                <div class="lg:tw-col-span-2">
+                    <label class="form-label !tw-m-0 !tw-text-base !tw-font-bold">Concepto</label>
+                    <input type="text" 
+                        class="form-control !tw-text-base"
+                        [(ngModel)]="movimientoProducto.concepto">
+                </div>
+
+                <div>
+                    <label class="form-lable !tw-m-0 !tw-text-base !tw-font-bold">Fecha de Emisión</label>
+                    <input type="datetime-local"
+                        class="form-control !tw-text-base"
+                        [(ngModel)]="movimientoProducto.fechaEmision">
+                </div>
+
+                <div>
+                    <label class="form-lable !tw-m-0 !tw-text-base !tw-font-bold">Fecha de Anulación</label>
+                    <input type="datetime-local"
+                        class="form-control !tw-text-base"
+                        [(ngModel)]="movimientoProducto.fechaAnulacion">
+                </div>
+
+                <div class="lg:tw-col-span-2">
+                    <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Importe Neto</label>
+                    <div>{{ Prop.toDecimal( movimientoProducto.importeNeto ).toFixed( 2 ) }}</div>
+                </div>
+
+                @if ( vm.isAttached ) {
+
+                    <div class="lg:tw-col-span-2">
+                        <label class="form-label !tw-text-base !tw-font-bold !tw-m-0">Documento Transacción Asociado</label>
+                        <input type="text"
+                            class="form-control !tw-text-base !tw-cursor-pointer"
+                            (click)="selectDocumentoTransaccion( $event )"
+                            (keydown.enter)="selectDocumentoTransaccion( $event )"
+                            [ngModel]="
+                                movimientoProducto.documentoTransaccion?.codigoSerie !== undefined && 
+                                movimientoProducto.documentoTransaccion?.codigoSerie !== null &&
+                                movimientoProducto.documentoTransaccion?.codigoNumero !== undefined && 
+                                movimientoProducto.documentoTransaccion?.codigoNumero !== null
+                                    ? movimientoProducto.documentoTransaccion?.codigoSerie + '-' + movimientoProducto.documentoTransaccion?.codigoNumero
+                                    : ''
+                            "
+                            readonly>
+                    </div>
+                    
+                }
+
+            }
+
+
+            <!-- DETALLES -->
+            <app-table class="!tw-p-0 !tw-rounded-none !tw-shadow-none !tw-max-h-[50vh]
+                lg:tw-col-span-2"
+                (onInit)="detallesTableComponentOnInit( $event )"
+                (onSelectItem)="openDetalleComponent(
+                    vm.stateComponent === StateComponentMovimientoProductoComponent.createMemory ||
+                    vm.stateComponent === StateComponentMovimientoProductoComponent.createServer ||
+                    vm.stateComponent === StateComponentMovimientoProductoComponent.updateMemory
+                        ? StateObjectComponent.read
+                        : StateObjectComponent.none,
+
+                    $event.item
+                )"/>
+    
+        </div>
+    
+    </div>
+    
+    <app-buttons-footer [vm$]="buttonsFooterComponentVm$"/>
+
+}
